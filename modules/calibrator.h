@@ -29,33 +29,35 @@ SOFTWARE.
 #include "ds_image.h"
 #include "trt_utils.h"
 
-class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2
-{
-public:
-    Int8EntropyCalibrator(const uint32_t& batchSize, const std::string& calibImages,
-                          const std::string& calibImagesPath, const std::string& calibTableFilePath,
-                          const uint64_t& inputSize, const uint32_t& inputH, const uint32_t& inputW,
-                          const std::string& inputBlobName);
-    virtual ~Int8EntropyCalibrator();
+class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
+ public:
+  Int8EntropyCalibrator(const uint32_t& batchSize,
+                        const std::string& calibImages,
+                        const std::string& calibImagesPath,
+                        const std::string& calibTableFilePath,
+                        const uint64_t& inputSize, const uint32_t& inputH,
+                        const uint32_t& inputW,
+                        const std::string& inputBlobName);
+  virtual ~Int8EntropyCalibrator();
 
-    int getBatchSize() const override { return m_BatchSize; }
-    bool getBatch(void* bindings[], const char* names[], int nbBindings) override;
-    const void* readCalibrationCache(size_t& length) override;
-    void writeCalibrationCache(const void* cache, size_t length) override;
+  int getBatchSize() const override { return m_BatchSize; }
+  bool getBatch(void* bindings[], const char* names[], int nbBindings) override;
+  const void* readCalibrationCache(size_t& length) override;
+  void writeCalibrationCache(const void* cache, size_t length) override;
 
-private:
-    const uint32_t m_BatchSize;
-    const uint32_t m_InputH;
-    const uint32_t m_InputW;
-    const uint64_t m_InputSize;
-    const uint64_t m_InputCount;
-    const std::string m_InputBlobName;
-    const std::string m_CalibTableFilePath{nullptr};
-    uint32_t m_ImageIndex;
-    bool m_ReadCache{true};
-    void* m_DeviceInput{nullptr};
-    std::vector<std::string> m_ImageList;
-    std::vector<char> m_CalibrationCache;
+ private:
+  const uint32_t m_BatchSize;
+  const uint32_t m_InputH;
+  const uint32_t m_InputW;
+  const uint64_t m_InputSize;
+  const uint64_t m_InputCount;
+  const std::string m_InputBlobName;
+  const std::string m_CalibTableFilePath{nullptr};
+  uint32_t m_ImageIndex;
+  bool m_ReadCache{true};
+  void* m_DeviceInput{nullptr};
+  std::vector<std::string> m_ImageList;
+  std::vector<char> m_CalibrationCache;
 };
 
 #endif

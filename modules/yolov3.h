@@ -26,20 +26,21 @@ SOFTWARE.
 #ifndef _YOLO_V3_
 #define _YOLO_V3_
 
-#include "yolo.h"
-
 #include <stdint.h>
+
 #include <string>
 #include <vector>
 
-class YoloV3 : public Yolo
-{
-public:
-    YoloV3(const NetworkInfo& networkInfo, const InferParams& inferParams);
+#include "yolo.h"
 
-private:
-    std::vector<BBoxInfo> decodeTensor(const int imageIdx, const int imageH, const int imageW,
-                                       const TensorInfo& tensor) override;
+class YoloV3 : public Yolo {
+ public:
+  YoloV3(const NetworkInfo& networkInfo, const InferParams& inferParams);
+
+ private:
+  std::vector<BBoxInfo> decodeTensor(const int imageIdx, const int imageH,
+                                     const int imageW,
+                                     const TensorInfo& tensor) override;
 };
 
-#endif // _YOLO_V3_
+#endif  // _YOLO_V3_
