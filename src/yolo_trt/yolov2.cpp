@@ -23,7 +23,7 @@ SOFTWARE.
 *
 */
 
-#include "yolov2.h"
+#include "yolo_trt/yolov2.h"
 
 #include <algorithm>
 

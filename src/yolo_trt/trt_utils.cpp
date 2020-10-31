@@ -23,7 +23,7 @@ SOFTWARE.
 *
 */
 
-#include "trt_utils.h"
+#include "yolo_trt/trt_utils.h"
 
 #include <NvInferRuntimeCommon.h>
 

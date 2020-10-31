@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "mish.h"
+#include "yolo_trt/mish.h"
 
 namespace nvinfer1 {
 MishPlugin::MishPlugin() {}

@@ -1,8 +1,8 @@
 #include <memory>
 #include <thread>
 
-#include "class_detector.h"
-#include "class_timer.hpp"
+#include "yolo_trt/class_detector.h"
+#include "yolo_trt/class_timer.hpp"
 
 int main() {
   yolo_trt::Config config_v3;

@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "chunk.h"
+#include "yolo_trt/chunk.h"
 #define NV_CUDA_CHECK(status)                                         \
   {                                                                   \
     if (status != 0) {                                                \

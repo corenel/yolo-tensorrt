@@ -1,4 +1,4 @@
-#include "yolo.h"
+#include "yolo_trt/yolo.h"
 
 #include <fstream>
 #include <iomanip>

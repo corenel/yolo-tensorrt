@@ -1,13 +1,35 @@
+/**
+MIT License
 
-#include "yolov4.h"
+Copyright (c) 2018 NVIDIA CORPORATION. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*
+*/
+#include "yolo_trt/yolov3.h"
 
 namespace yolo_trt {
 
-YoloV4::YoloV4(const NetworkInfo& network_info_,
-               const InferParams& infer_params_)
-    : Yolo(network_info_, infer_params_) {}
+YoloV3::YoloV3(const NetworkInfo& networkInfo, const InferParams& inferParams)
+    : Yolo(networkInfo, inferParams) {}
 
-std::vector<BBoxInfo> YoloV4::decodeTensor(const int imageIdx, const int imageH,
+std::vector<BBoxInfo> YoloV3::decodeTensor(const int imageIdx, const int imageH,
                                            const int imageW,
                                            const TensorInfo& tensor) {
   float scale_h = 1.f;
@@ -31,6 +53,7 @@ std::vector<BBoxInfo> YoloV4::decodeTensor(const int imageIdx, const int imageH,
         const float bx =
             x + detections[bbindex +
                            numGridCells * (b * (5 + tensor.numClasses) + 0)];
+
         const float by =
             y + detections[bbindex +
                            numGridCells * (b * (5 + tensor.numClasses) + 1)];

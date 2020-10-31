@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *
 */
-#include "ds_image.h"
+#include "yolo_trt/ds_image.h"
 
 #include <experimental/filesystem>
 

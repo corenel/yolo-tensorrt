@@ -9,7 +9,7 @@
 #include <cmath>
 #include <iostream>
 // my
-#include "hardswish.h"
+#include "yolo_trt/hardswish.h"
 
 #define NV_CUDA_CHECK(status)                                         \
   {                                                                   \

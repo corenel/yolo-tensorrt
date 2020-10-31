@@ -23,7 +23,7 @@ SOFTWARE.
 *
 */
 
-#include "calibrator.h"
+#include "yolo_trt/calibrator.h"
 
 #include <fstream>
 #include <iostream>

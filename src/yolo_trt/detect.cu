@@ -9,7 +9,7 @@
 #include <cmath>
 #include <iostream>
 // my
-#include "detect.h"
+#include "yolo_trt/detect.h"
 
 #define NV_CUDA_CHECK(status)                                         \
   {                                                                   \

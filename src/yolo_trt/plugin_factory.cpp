@@ -23,9 +23,9 @@ SOFTWARE.
 *
 */
 
-#include "plugin_factory.h"
+#include "yolo_trt/plugin_factory.h"
 
-#include "trt_utils.h"
+#include "yolo_trt/trt_utils.h"
 
 namespace yolo_trt {
 

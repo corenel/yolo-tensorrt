@@ -1,6 +1,6 @@
-#include "class_detector.h"
+#include "yolo_trt/class_detector.h"
 
-#include "class_yolo_detector.hpp"
+#include "yolo_trt/class_yolo_detector.hpp"
 
 namespace yolo_trt {
 

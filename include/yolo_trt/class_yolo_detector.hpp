@@ -113,7 +113,7 @@ class YoloDectector {
     _infer_param.calibImages = _config.calibration_image_list_file_txt;
     _infer_param.calibImagesPath = "";
     _infer_param.probThresh = _config.detect_thresh;
-    _infer_param.nmsThresh = 0.5;
+    _infer_param.nmsThresh = _config.nms_thresh;
   }
 
   void build_net() {

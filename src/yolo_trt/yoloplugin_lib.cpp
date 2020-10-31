@@ -23,14 +23,14 @@ SOFTWARE.
 *
 */
 
-#include "yoloplugin_lib.h"
+#include "yolo_trt/yoloplugin_lib.h"
 
 #include <chrono>
 #include <iomanip>
 
-#include "yolo_config_parser.h"
-#include "yolov2.h"
-#include "yolov3.h"
+#include "yolo_trt/yolo_config_parser.h"
+#include "yolo_trt/yolov2.h"
+#include "yolo_trt/yolov3.h"
 
 namespace yolo_trt {
 

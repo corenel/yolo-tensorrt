@@ -23,7 +23,7 @@ SOFTWARE.
 *
 */
 
-#include "yolo_config_parser.h"
+#include "yolo_trt/yolo_config_parser.h"
 
 #include <assert.h>
 
