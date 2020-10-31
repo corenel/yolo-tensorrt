@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(yolo_trt)
 
-file(GLOB_RECURSE sources src/*.cpp modules/*.cu)
+file(GLOB_RECURSE sources src/*.cpp src/*.cu)
 
 set(CMAKE_CXX_COMPILIER "/usr/bin/g++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wno-write-strings")
