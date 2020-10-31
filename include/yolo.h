@@ -97,6 +97,9 @@ class Yolo {
  public:
   std::string getNetworkType() const { return m_NetworkType; }
   float getNMSThresh() const { return m_NMSThresh; }
+  void setNMSThresh(float m_nms_thresh);
+  float getProbThresh() const;
+  void setProbThresh(float m_prob_thresh);
   std::string getClassName(const int& label) const {
     return m_ClassNames.at(label);
   }
@@ -136,8 +139,8 @@ class Yolo {
   uint32_t _n_classes = 0;
   float _f_depth_multiple = 0;
   float _f_width_multiple = 0;
-  const float m_ProbThresh;
-  const float m_NMSThresh;
+  float m_ProbThresh;
+  float m_NMSThresh;
   std::vector<std::string> m_ClassNames;
   // Class ids for coco benchmarking
   const std::vector<int> m_ClassIds{

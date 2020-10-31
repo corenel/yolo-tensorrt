@@ -29,4 +29,12 @@ void Detector::detect(const std::vector<cv::Mat> &mat_image,
   _impl->_detector.detect(mat_image, vec_batch_result);
 }
 
+void Detector::setNMSThresh(float m_nms_thresh) {
+  _impl->_detector.setNMSThresh(m_nms_thresh);
+}
+
+void Detector::setProbThresh(float m_prob_thresh) {
+  _impl->_detector.setProbThresh(m_prob_thresh);
+}
+
 }  // namespace yolo_trt

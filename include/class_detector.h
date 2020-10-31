@@ -34,6 +34,7 @@ struct Config {
   std::string file_model_weights = "configs/yolov3.weights";
 
   float detect_thresh = 0.9;
+  float nms_thresh = 0.5;
 
   ModelType net_type = YOLOV3;
 
@@ -55,6 +56,9 @@ class API Detector {
 
   void detect(const std::vector<cv::Mat> &mat_image,
               std::vector<BatchResult> &vec_batch_result);
+
+  void setNMSThresh(float m_nms_thresh);
+  void setProbThresh(float m_prob_thresh);
 
  private:
   Detector(const Detector &);

@@ -75,6 +75,14 @@ class YoloDectector {
     }
   }
 
+  void setNMSThresh(float m_nms_thresh) {
+    _p_net->setNMSThresh(m_nms_thresh);
+  };
+
+  void setProbThresh(float m_prob_thresh) {
+    _p_net->setProbThresh(m_prob_thresh);
+  };
+
  private:
   void set_gpu_id(const int id = 0) {
     cudaError_t status = cudaSetDevice(id);

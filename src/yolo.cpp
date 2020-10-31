@@ -1173,4 +1173,11 @@ void Yolo::writePlanFileToDisk() {
             << std::endl;
 }
 
+void Yolo::setNMSThresh(float m_nms_thresh) { m_NMSThresh = m_nms_thresh; }
+
+float Yolo::getProbThresh() const { return m_ProbThresh; }
+
+void Yolo::setProbThresh(float m_prob_thresh) { m_ProbThresh = m_prob_thresh; }
+
+
 }  // namespace yolo_trt
