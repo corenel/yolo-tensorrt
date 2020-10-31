@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+namespace yolo_trt {
 class Timer {
  public:
   Timer() : beg_(clock_::now()) {}
@@ -26,3 +27,5 @@ class Timer {
   typedef std::chrono::duration<double, std::milli> second_;
   std::chrono::time_point<clock_> beg_;
 };
+
+}  // namespace yolo_trt

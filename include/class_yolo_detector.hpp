@@ -18,6 +18,9 @@
 #include "yolov3.h"
 #include "yolov4.h"
 #include "yolov5.h"
+
+namespace yolo_trt {
+
 class YoloDectector {
  public:
   YoloDectector() {}
@@ -132,5 +135,7 @@ class YoloDectector {
   std::unique_ptr<Yolo> _p_net = nullptr;
   Timer _m_timer;
 };
+
+}  // namespace yolo_trt
 
 #endif

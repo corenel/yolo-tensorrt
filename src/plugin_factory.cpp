@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "trt_utils.h"
 
+namespace yolo_trt {
+
 PluginFactory::PluginFactory() : m_ReorgLayer{nullptr}, m_RegionLayer{nullptr} {
   for (int i = 0; i < m_MaxLeakyLayers; ++i) m_LeakyReLULayers[i] = nullptr;
 }
@@ -162,3 +164,5 @@ void YoloLayerV3::serialize(void* buffer) {
   write(d, m_OutputSize);
   assert(d == a + getSerializationSize());
 }
+
+}  // namespace yolo_trt

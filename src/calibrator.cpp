@@ -29,6 +29,8 @@ SOFTWARE.
 #include <iostream>
 #include <iterator>
 
+namespace yolo_trt {
+
 Int8EntropyCalibrator::Int8EntropyCalibrator(
     const uint32_t& batchSize, const std::string& calibImages,
     const std::string& calibImagesPath, const std::string& calibTableFilePath,
@@ -112,3 +114,5 @@ void Int8EntropyCalibrator::writeCalibrationCache(const void* cache,
   output.write(reinterpret_cast<const char*>(cache), length);
   output.close();
 }
+
+}  // namespace yolo_trt

@@ -26,6 +26,8 @@ SOFTWARE.
 
 #include <experimental/filesystem>
 
+namespace yolo_trt {
+
 DsImage::DsImage()
     : m_Height(0),
       m_Width(0),
@@ -194,3 +196,5 @@ std::string DsImage::exportJson() const {
   }
   return json.str();
 }
+
+}  // namespace yolo_trt

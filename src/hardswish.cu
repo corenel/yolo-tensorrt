@@ -93,7 +93,7 @@ void Hardswish::configurePlugin(const PluginTensorDesc* in, int nbInput,
                                 const PluginTensorDesc* out, int nbOutput) {
   _n_output_size = in->dims.d[0] * in->dims.d[1] * in->dims.d[2];
   //		printf("configurePlugin:%d,%d,%d\n", in->dims.d[0],
-  //in->dims.d[1], in->dims.d[2]);
+  // in->dims.d[1], in->dims.d[2]);
 }
 IPluginV2IOExt* Hardswish::clone() const {
   Hardswish* p = new Hardswish();

@@ -43,6 +43,8 @@ SOFTWARE.
 #include "trt_utils.h"
 //#include "logging.h"
 
+namespace yolo_trt {
+
 /**
  * Holds all the file paths required to build a network.
  */
@@ -282,5 +284,7 @@ class Yolo {
 
   int _n_yolo_ind = 0;
 };
+
+}  // namespace yolo_trt
 
 #endif  // _YOLO_H_

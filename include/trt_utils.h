@@ -46,6 +46,9 @@ SOFTWARE.
 #include "mish.h"
 #include "plugin_factory.h"
 //#include "logging.h"
+
+namespace yolo_trt {
+
 class DsImage;
 struct BBox {
   float x1, y1, x2, y2;
@@ -251,5 +254,7 @@ nvinfer1::ILayer* layer_conv(
     const bool b_bias_ = false, const int group_ = 1,
     const bool b_padding_ = true);
 std::vector<int> dims2chw(const nvinfer1::Dims d);
+
+}  // namespace yolo_trt
 
 #endif

@@ -2,6 +2,8 @@
 
 #include "class_yolo_detector.hpp"
 
+namespace yolo_trt {
+
 class Detector::Impl {
  public:
   Impl() {}
@@ -26,3 +28,5 @@ void Detector::detect(const std::vector<cv::Mat> &mat_image,
                       std::vector<BatchResult> &vec_batch_result) {
   _impl->_detector.detect(mat_image, vec_batch_result);
 }
+
+}  // namespace yolo_trt

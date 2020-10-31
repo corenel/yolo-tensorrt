@@ -27,6 +27,8 @@
 
 #include "NvInferRuntimeCommon.h"
 
+namespace yolo_trt {
+
 using Severity = nvinfer1::ILogger::Severity;
 
 class LogStreamConsumerBuffer : public std::stringbuf {
@@ -499,5 +501,7 @@ inline LogStreamConsumer LOG_FATAL(const Logger& logger) {
 }
 
 }  // anonymous namespace
+
+}  // namespace yolo_trt
 
 #endif  // TENSORRT_LOGGING_H

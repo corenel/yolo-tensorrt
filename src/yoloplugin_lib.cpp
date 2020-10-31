@@ -32,6 +32,8 @@ SOFTWARE.
 #include "yolov2.h"
 #include "yolov3.h"
 
+namespace yolo_trt {
+
 static void decodeBatchDetections(const YoloPluginCtx* ctx,
                                   std::vector<YoloPluginOutput*>& outputs) {
   for (uint32_t p = 0; p < ctx->batchSize; ++p) {
@@ -208,3 +210,5 @@ void YoloPluginCtxDeinit(YoloPluginCtx* ctx) {
   delete ctx->inferenceNetwork;
   delete ctx;
 }
+
+}  // namespace yolo_trt

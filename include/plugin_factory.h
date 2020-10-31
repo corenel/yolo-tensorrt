@@ -35,6 +35,8 @@ SOFTWARE.
 
 #include "NvInferPlugin.h"
 
+namespace yolo_trt {
+
 #define NV_CUDA_CHECK(status)                                         \
   {                                                                   \
     if (status != 0) {                                                \
@@ -137,5 +139,7 @@ class YoloLayerV3 : public nvinfer1::IPlugin {
   uint32_t _n_grid_h;
   uint32_t _n_grid_w;
 };
+
+}  // namespace yolo_trt
 
 #endif  // __PLUGIN_LAYER_H__

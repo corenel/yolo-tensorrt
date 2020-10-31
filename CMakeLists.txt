@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(yolo_tensorrt)
+project(yolo_trt)
 
 file(GLOB_RECURSE sources src/*.cpp modules/*.cu)
 

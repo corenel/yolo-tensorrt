@@ -35,6 +35,8 @@ SOFTWARE.
 // extern "C" {
 //#endif
 
+namespace yolo_trt {
+
 #define MAX_OBJECTS_PER_FRAME 32
 typedef struct YoloPluginCtx YoloPluginCtx;
 typedef struct YoloPluginOutput YoloPluginOutput;
@@ -91,5 +93,7 @@ void YoloPluginCtxDeinit(YoloPluginCtx* ctx);
 //#ifdef __cplusplus
 //}
 //#endif
+
+}  // namespace yolo_trt
 
 #endif

@@ -29,6 +29,8 @@ SOFTWARE.
 #include "ds_image.h"
 #include "trt_utils.h"
 
+namespace yolo_trt {
+
 class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
  public:
   Int8EntropyCalibrator(const uint32_t& batchSize,
@@ -59,5 +61,7 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
   std::vector<std::string> m_ImageList;
   std::vector<char> m_CalibrationCache;
 };
+
+}
 
 #endif

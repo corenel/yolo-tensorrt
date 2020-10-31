@@ -7,6 +7,8 @@
 #include <sstream>
 #include <vector>
 
+namespace yolo_trt {
+
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(DetectPluginCreator);
 
@@ -1170,3 +1172,5 @@ void Yolo::writePlanFileToDisk() {
   std::cout << "Serialized plan file cached at location : " << m_EnginePath
             << std::endl;
 }
+
+}  // namespace yolo_trt

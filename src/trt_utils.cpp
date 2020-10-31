@@ -30,6 +30,9 @@ SOFTWARE.
 #include <experimental/filesystem>
 #include <fstream>
 #include <iomanip>
+
+namespace yolo_trt {
+
 using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 REGISTER_TENSORRT_PLUGIN(ChunkPluginCreator);
@@ -1272,3 +1275,5 @@ void printLayerInfo(std::string layerIndex, std::string layerName,
             << std::left << layerOutput;
   std::cout << std::setw(6) << std::left << weightPtr << std::endl;
 }
+
+}  // namespace yolo_trt

@@ -1,6 +1,8 @@
 
 #include "yolov5.h"
 
+namespace yolo_trt {
+
 YoloV5::YoloV5(const NetworkInfo& network_info_,
                const InferParams& infer_params_)
     : Yolo(network_info_, infer_params_) {}
@@ -68,3 +70,5 @@ std::vector<BBoxInfo> YoloV5::decodeTensor(const int imageIdx, const int imageH,
   }
   return binfo;
 }
+
+}  // namespace yolo_trt

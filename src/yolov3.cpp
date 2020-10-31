@@ -24,6 +24,8 @@ SOFTWARE.
 */
 #include "yolov3.h"
 
+namespace yolo_trt {
+
 YoloV3::YoloV3(const NetworkInfo& networkInfo, const InferParams& inferParams)
     : Yolo(networkInfo, inferParams) {}
 
@@ -91,3 +93,5 @@ std::vector<BBoxInfo> YoloV3::decodeTensor(const int imageIdx, const int imageH,
   }
   return binfo;
 }
+
+}  // namespace yolo_trt

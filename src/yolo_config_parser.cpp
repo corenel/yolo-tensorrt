@@ -29,6 +29,8 @@ SOFTWARE.
 
 #include <iostream>
 
+namespace yolo_trt {
+
 // DEFINE_string(network_type, "not-specified",
 //              "[REQUIRED] Type of network architecture. Choose from yolov2,
 //              yolov2-tiny, " "yolov3 and yolov3-tiny");
@@ -229,3 +231,5 @@ if (isFlagDefault(FLAGS_calibration_table_path))
 // uint32_t getBatchSize() { return FLAGS_batch_size; }
 //
 // bool getShuffleTestSet() { return FLAGS_shuffle_test_set; }
+
+}  // namespace yolo_trt

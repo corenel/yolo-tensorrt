@@ -33,6 +33,8 @@ SOFTWARE.
 
 #include "yolo.h"
 
+namespace yolo_trt {
+
 class YoloV3 : public Yolo {
  public:
   YoloV3(const NetworkInfo& networkInfo, const InferParams& inferParams);
@@ -42,5 +44,7 @@ class YoloV3 : public Yolo {
                                      const int imageW,
                                      const TensorInfo& tensor) override;
 };
+
+}  // namespace yolo_trt
 
 #endif  // _YOLO_V3_

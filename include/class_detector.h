@@ -6,6 +6,8 @@
 
 #include "API.h"
 
+namespace yolo_trt {
+
 struct Result {
   int id = -1;
   float prob = 0.f;
@@ -61,4 +63,5 @@ class API Detector {
   Impl *_impl;
 };
 
+}  // namespace yolo_trt
 #endif  // !CLASS_QH_DETECTOR_H_

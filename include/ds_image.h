@@ -27,6 +27,8 @@ SOFTWARE.
 
 #include "trt_utils.h"
 
+namespace yolo_trt {
+
 struct BBoxInfo;
 
 class DsImage {
@@ -62,5 +64,7 @@ class DsImage {
   // final image marked with the bounding boxes
   cv::Mat m_MarkedImage;
 };
+
+}  // namespace yolo_trt
 
 #endif

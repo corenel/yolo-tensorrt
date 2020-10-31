@@ -7,6 +7,7 @@
 #include "NvInfer.h"
 
 // https://github.com/wang-xinyu/tensorrtx
+
 namespace nvinfer1 {
 class MishPlugin : public IPluginV2IOExt {
  public:
@@ -107,4 +108,5 @@ class MishPluginCreator : public IPluginCreator {
   static std::vector<PluginField> mPluginAttributes;
 };
 }  // namespace nvinfer1
+
 #endif
