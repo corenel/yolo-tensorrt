@@ -16,7 +16,7 @@ message(STATUS "${CMAKE_SOURCE_DIR}")
 add_library(detector SHARED IMPORTED)
 set_target_properties(detector PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/libdetector.so)
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 
 target_include_directories(yolov3-trt PRIVATE modules/ ./)

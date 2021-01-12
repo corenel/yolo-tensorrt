@@ -20,7 +20,7 @@ if (CUDA_VERSION_MAJOR GREATER 9)
     )
 endif ()
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 #generate detector lib
 cuda_add_library(${PROJECT_NAME} SHARED ${sources})
