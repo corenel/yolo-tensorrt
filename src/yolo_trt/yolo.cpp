@@ -61,7 +61,7 @@ Yolo::Yolo(const NetworkInfo& networkInfo, const InferParams& inferParams)
   } else if (m_Precision == "kINT8") {
     Int8EntropyCalibrator calibrator(
         m_BatchSize, m_CalibImages, m_CalibImagesFilePath, m_CalibTableFilePath,
-        m_InputSize, m_InputH, m_InputW, m_InputBlobName);
+        m_InputSize, m_InputH, m_InputW, m_InputBlobName, m_NetworkType);
     if ("yolov5" == m_NetworkType) {
       create_engine_yolov5(nvinfer1::DataType::kINT8, &calibrator);
     } else {
@@ -428,6 +428,9 @@ void Yolo::createYOLOEngine(const nvinfer1::DataType dataType,
     config->setFlag(nvinfer1::BuilderFlag::kINT8);
     //   m_Builder->setInt8Calibrator(calibrator);
     config->setInt8Calibrator(calibrator);
+    //	config->setTacticSources(1U <<
+    // static_cast<uint32_t>(TacticSource::kCUBLAS) | 1U <<
+    // static_cast<uint32_t>(TacticSource::kCUBLAS_LT));
   } else if (dataType == nvinfer1::DataType::kHALF) {
     config->setFlag(nvinfer1::BuilderFlag::kFP16);
     //   m_Builder->setHalf2Mode(true);
@@ -496,7 +499,7 @@ void parse_spp_args(const std::string s_args_, int& n_filters_,
   size_t pos = 0;
   std::string token;
   std::string delimiter = ",";
-  bool w = 0;
+  bool w = false;
   while ((pos = s_args.find(delimiter)) != std::string::npos) {
     token = s_args.substr(0, pos);
     if (!w) {
@@ -798,6 +801,9 @@ void Yolo::create_engine_yolov5(const nvinfer1::DataType dataType,
     config->setFlag(nvinfer1::BuilderFlag::kINT8);
     //   m_Builder->setInt8Calibrator(calibrator);
     config->setInt8Calibrator(calibrator);
+    // config->setTacticSources(1U <<
+    // static_cast<uint32_t>(TacticSource::kCUBLAS) | 1U <<
+    // static_cast<uint32_t>(TacticSource::kCUBLAS_LT));
   } else if (dataType == nvinfer1::DataType::kHALF) {
     config->setFlag(nvinfer1::BuilderFlag::kFP16);
     //   m_Builder->setHalf2Mode(true);
@@ -842,7 +848,7 @@ void Yolo::load_weights_v5(
   assert(file.good());
   std::string line;
   while (std::getline(file, line)) {
-    if (line.size() == 0) continue;
+    if (line.empty()) continue;
     std::stringstream iss(line);
     std::string wts_name;
     iss >> wts_name;
@@ -856,7 +862,7 @@ void Yolo::load_weights_v5(
   std::cout << "Loading complete!" << std::endl;
 }
 void Yolo::doInference(const unsigned char* input, const uint32_t batchSize) {
-  //	Timer timer;
+  Timer timer;
   assert(batchSize <= m_BatchSize &&
          "Image batch size exceeds TRT engines batch size");
   NV_CUDA_CHECK(cudaMemcpyAsync(m_DeviceBuffers.at(m_InputBindingIndex), input,
@@ -871,7 +877,7 @@ void Yolo::doInference(const unsigned char* input, const uint32_t batchSize) {
                                   cudaMemcpyDeviceToHost, m_CudaStream));
   }
   cudaStreamSynchronize(m_CudaStream);
-  //	timer.out("inference");
+  timer.out("inference");
 }
 
 std::vector<BBoxInfo> Yolo::decodeDetections(const int& imageIdx,
@@ -898,11 +904,11 @@ std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(
   std::map<std::string, std::string> block;
 
   while (getline(file, line)) {
-    if (line.size() == 0) continue;
+    if (line.empty()) continue;
     if (line.front() == '#') continue;
     line = trim(line);
     if (line.front() == '[') {
-      if (block.size() > 0) {
+      if (block.empty()) {
         blocks.push_back(block);
         block.clear();
       }
@@ -1147,8 +1153,8 @@ void Yolo::destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights) {
   if (m_ModelStream) m_ModelStream->destroy();
 
   // deallocate the weights
-  for (uint32_t i = 0; i < trtWeights.size(); ++i) {
-    if (trtWeights[i].count > 0) free(const_cast<void*>(trtWeights[i].values));
+  for (auto & trtWeight : trtWeights) {
+    if (trtWeight.count > 0) free(const_cast<void*>(trtWeight.values));
   }
 }
 
@@ -1178,6 +1184,5 @@ void Yolo::setNMSThresh(float m_nms_thresh) { m_NMSThresh = m_nms_thresh; }
 float Yolo::getProbThresh() const { return m_ProbThresh; }
 
 void Yolo::setProbThresh(float m_prob_thresh) { m_ProbThresh = m_prob_thresh; }
-
 
 }  // namespace yolo_trt
