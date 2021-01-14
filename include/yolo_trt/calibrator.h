@@ -33,13 +33,11 @@ namespace yolo_trt {
 
 class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
  public:
-  Int8EntropyCalibrator(const uint32_t& batchSize,
-                        const std::string& calibImages,
-                        const std::string& calibImagesPath,
-                        const std::string& calibTableFilePath,
-                        const uint64_t& inputSize, const uint32_t& inputH,
-                        const uint32_t& inputW,
-                        const std::string& inputBlobName);
+  Int8EntropyCalibrator(
+      const uint32_t& batchSize, const std::string& calibImages,
+      const std::string& calibImagesPath, const std::string& calibTableFilePath,
+      const uint64_t& inputSize, const uint32_t& inputH, const uint32_t& inputW,
+      const std::string& inputBlobName, const std::string& s_net_type_);
   virtual ~Int8EntropyCalibrator();
 
   int getBatchSize() const override { return m_BatchSize; }
@@ -54,6 +52,7 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
   const uint64_t m_InputSize;
   const uint64_t m_InputCount;
   const std::string m_InputBlobName;
+  const std::string _s_net_type;
   const std::string m_CalibTableFilePath{nullptr};
   uint32_t m_ImageIndex;
   bool m_ReadCache{true};
@@ -62,6 +61,6 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
   std::vector<char> m_CalibrationCache;
 };
 
-}
+}  // namespace yolo_trt
 
 #endif

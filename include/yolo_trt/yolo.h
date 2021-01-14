@@ -255,7 +255,14 @@ class Yolo {
     if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) {
       return;
     }
-    cvt_box(scaleH, scaleW, xoffset_, yoffset, bbi.box);
+    if ("yolov5" == m_NetworkType) {
+      cvt_box(scaleH, scaleW, xoffset_, yoffset, bbi.box);
+    } else {
+      bbi.box.x1 = ((float)bbi.box.x1 / (float)m_InputW) * (float)image_w;
+      bbi.box.y1 = ((float)bbi.box.y1 / (float)m_InputH) * (float)image_h;
+      bbi.box.x2 = ((float)bbi.box.x2 / (float)m_InputW) * (float)image_w;
+      bbi.box.y2 = ((float)bbi.box.y2 / (float)m_InputH) * (float)image_h;
+    }
     bbi.label = maxIndex;
     bbi.prob = maxProb;
     bbi.classId = getClassId(maxIndex);

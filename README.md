@@ -22,21 +22,49 @@ The project is the encapsulation  of nvidia official yolo-tensorrt [implementati
 - [x] inequal net width and height
 - [x] batch inference
 - [x] support FP32,FP16,INT8
-- [ ] daynamic input size
+- [ ] dynamic input size
 
 
-## PLATFORM & PERFORMENCE
+## PLATFORM & BENCHMARK
 
 - [x] windows 10
 - [x] ubuntu 18.04
 - [x] L4T (Jetson platform)
 
-|     model      |             gpu              | precision | detect time(with pre and post process) |
-| :------------: | :--------------------------: | :-------: | :------------------------------------: |
-| yolov3-416x416 |      jetson nano (15w)       |   FP16    |                 250ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP32    |                 120ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   FP16    |                  45ms                  |
-| yolov3-416x416 | jetson xavier nx (15w 6core) |   INT8    |                  35ms                  |
+<details><summary><b>BENCHMARK</b></summary>
+
+#### x86 (inference time)
+
+
+|  model  |  size   |  gpu   | fp32 | fp16 | INT8 |
+| :-----: | :-----: | :----: | :--: | :--: | :--: |
+| yolov5s | 640x640 | 1080ti | 8ms  |  /   | 7ms  |
+| yolov5m | 640x640 | 1080ti | 13ms |  /   | 11ms |
+| yolov5l | 640x640 | 1080ti | 20ms |  /   | 15ms |
+| yolov5x | 640x640 | 1080ti | 30ms |  /   | 23ms |
+#### Jetson NX with Jetpack4.4.1 (inference / detect time)
+
+|      model      |      size      |  gpu   | fp32 | fp16 | INT8 |
+| :-------------: | :----: | :--: | :--: | :--: | :--: |
+| yolov3 | 416x416 | nx | 105ms/120ms |  30ms/48ms  | 20ms/35ms |
+| yolov3-tiny | 416x416 | nx | 14ms/23ms  |  8ms/15ms   | 12ms/19ms  |
+| yolov4-tiny | 416x416 | nx | 13ms/23ms  |  7ms/16ms   | 7ms/15ms  |
+| yolov4 | 416x416 | nx | 111ms/125ms  |  55ms/65ms  | 47ms/57ms  |
+| yolov5s | 416x416 | nx | 47ms/88ms |  33ms/74ms   | 28ms/64ms |
+|   yolov5m   | 416x416 | nx | 110ms/145ms |  63ms/101ms   | 49ms/91ms |
+| yolov5l | 416x416 | nx | 205ms/242ms |  95ms/123ms   | 76ms/118ms |
+| yolov5x | 416x416 | nx | 351ms/405ms |  151ms/183ms   | 114ms/149ms |
+
+
+### ubuntu 
+|      model      |      size      |  gpu   | fp32 | fp16 | INT8 |
+| :-------------: | :----: | :--: | :--: | :--: | :--: |
+| yolov4 | 416x416 | titanv | 11ms/17ms  |  8ms/15ms  | 7ms/14ms  |
+| yolov5s | 416x416 | titanv | 7ms/22ms |  5ms/20ms   | 5ms/18ms |
+|   yolov5m   | 416x416 | titanv | 9ms/23ms |  8ms/22ms   | 7ms/21ms |
+| yolov5l | 416x416 | titanv | 17ms/28ms |  11ms/23ms   | 11ms/24ms |
+| yolov5x | 416x416 | titanv | 25ms/40ms |  15ms/27ms   | 15ms/27ms |
+</details>
 
 ## WRAPPER
 

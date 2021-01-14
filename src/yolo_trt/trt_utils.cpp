@@ -183,8 +183,7 @@ std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
   }
 
   for (auto& boxes : splitBoxes) {
-    if (("yolov5" == model_type) || ("yolov4" == model_type) ||
-        ("yolov4-tiny" == model_type)) {
+    if ("yolov5" == model_type) {
       boxes = diou_nms(nmsThresh, boxes);
     } else {
       boxes = nonMaximumSuppression(nmsThresh, boxes);
