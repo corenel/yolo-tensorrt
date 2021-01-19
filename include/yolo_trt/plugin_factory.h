@@ -77,13 +77,13 @@ class PluginFactory : public nvinfer1::IPluginFactory {
   nvinfer1::plugin::RegionParameters m_RegionParameters{m_NumBoxes, m_NumCoords,
                                                         m_NumClasses, nullptr};
 
-  struct INvPluginDeleter {
-    void operator()(nvinfer1::plugin::INvPlugin* ptr) {
-      if (ptr) {
-        ptr->destroy();
-      }
-    }
-  };
+  // struct INvPluginDeleter {
+  //   void operator()(nvinfer1::plugin::INvPlugin* ptr) {
+  //     if (ptr) {
+  //       ptr->destroy();
+  //     }
+  //   }
+  // };
   struct IPluginDeleter {
     void operator()(nvinfer1::IPlugin* ptr) {
       if (ptr) {
@@ -91,13 +91,16 @@ class PluginFactory : public nvinfer1::IPluginFactory {
       }
     }
   };
-  typedef std::unique_ptr<nvinfer1::plugin::INvPlugin, INvPluginDeleter>
-      unique_ptr_INvPlugin;
+  // typedef std::unique_ptr<nvinfer1::plugin::INvPlugin, INvPluginDeleter>
+  //     unique_ptr_INvPlugin;
   typedef std::unique_ptr<nvinfer1::IPlugin, IPluginDeleter> unique_ptr_IPlugin;
 
-  unique_ptr_INvPlugin m_ReorgLayer;
-  unique_ptr_INvPlugin m_RegionLayer;
-  unique_ptr_INvPlugin m_LeakyReLULayers[m_MaxLeakyLayers];
+  // unique_ptr_INvPlugin m_ReorgLayer;
+  // unique_ptr_INvPlugin m_RegionLayer;
+  // unique_ptr_INvPlugin m_LeakyReLULayers[m_MaxLeakyLayers];
+  unique_ptr_IPlugin m_ReorgLayer;
+  unique_ptr_IPlugin m_RegionLayer;
+  unique_ptr_IPlugin m_LeakyReLULayers[m_MaxLeakyLayers];
   unique_ptr_IPlugin m_YoloLayers[m_MaxYoloLayers];
 };
 
