@@ -118,7 +118,7 @@ struct Config
 
 	ModelType net_type = YOLOV4;
 
-	Precision inference_precison = INT8;
+	Precision inference_precision = INT8;
 	
 	int gpu_id = 0;
 

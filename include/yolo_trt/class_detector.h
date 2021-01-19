@@ -38,7 +38,7 @@ struct Config {
 
   ModelType net_type = YOLOV3;
 
-  Precision inference_precison = FP32;
+  Precision inference_precision = FP32;
 
   int gpu_id = 0;
 
