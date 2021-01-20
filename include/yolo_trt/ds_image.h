@@ -47,7 +47,6 @@ class DsImage {
   void showImage() const;
   void saveImageJPEG(const std::string& dirPath) const;
   std::string exportJson() const;
-
   void letterbox(const int& inputH, const int& inputW);
 
  private:

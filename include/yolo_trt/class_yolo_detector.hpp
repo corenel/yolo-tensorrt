@@ -46,11 +46,11 @@ class YoloDectector {
       vec_ds_images.emplace_back(img, _vec_net_type[_config.net_type],
                                  _p_net->getInputH(), _p_net->getInputW());
     }
-    timer.out("pre");
     cv::Mat trtInput = blobFromDsImages(vec_ds_images, _p_net->getInputH(),
                                         _p_net->getInputW());
-    timer.reset();
+    timer.out("pre");
     _p_net->doInference(trtInput.data, vec_ds_images.size());
+    timer.reset();
     for (uint32_t i = 0; i < vec_ds_images.size(); ++i) {
       auto curImage = vec_ds_images.at(i);
       auto binfo = _p_net->decodeDetections(i, curImage.getImageHeight(),

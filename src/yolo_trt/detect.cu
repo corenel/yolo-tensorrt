@@ -65,7 +65,7 @@ __global__ void gpu_detect_layer(const float* input_, float* output_,
     return;
   }
   //	printf("grid_h:%d,grid_w:%d,class:%d,anchor:%d\n", n_grid_h_, n_grid_w_,
-  // n_classes_, n_anchor_);
+  //n_classes_, n_anchor_);
   const int numGridCells = n_grid_h_ * n_grid_w_;
   const int bbindex = y_id * n_grid_w_ + x_id;
 

@@ -908,7 +908,7 @@ std::vector<std::map<std::string, std::string>> Yolo::parseConfigFile(
     if (line.front() == '#') continue;
     line = trim(line);
     if (line.front() == '[') {
-      if (block.empty()) {
+      if (!block.empty()) {
         blocks.push_back(block);
         block.clear();
       }
@@ -1153,7 +1153,7 @@ void Yolo::destroyNetworkUtils(std::vector<nvinfer1::Weights>& trtWeights) {
   if (m_ModelStream) m_ModelStream->destroy();
 
   // deallocate the weights
-  for (auto & trtWeight : trtWeights) {
+  for (auto& trtWeight : trtWeights) {
     if (trtWeight.count > 0) free(const_cast<void*>(trtWeight.values));
   }
 }

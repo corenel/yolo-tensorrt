@@ -263,6 +263,7 @@ class Yolo {
       bbi.box.x2 = ((float)bbi.box.x2 / (float)m_InputW) * (float)image_w;
       bbi.box.y2 = ((float)bbi.box.y2 / (float)m_InputH) * (float)image_h;
     }
+
     bbi.label = maxIndex;
     bbi.prob = maxProb;
     bbi.classId = getClassId(maxIndex);

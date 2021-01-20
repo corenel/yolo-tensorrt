@@ -51,9 +51,9 @@ int Chunk::enqueue(int batchSize, const void* const* inputs, void** outputs,
                    _n_size_split, cudaMemcpyDeviceToDevice));
   }
   //	NV_CUDA_CHECK(cudaMemcpy(outputs[0], inputs[0], _n_size_split,
-  // cudaMemcpyDeviceToDevice)); 	NV_CUDA_CHECK(cudaMemcpy(outputs[1],
+  //cudaMemcpyDeviceToDevice)); 	NV_CUDA_CHECK(cudaMemcpy(outputs[1],
   //(void*)((char*)inputs[0] + _n_size_split), _n_size_split,
-  // cudaMemcpyDeviceToDevice));
+  //cudaMemcpyDeviceToDevice));
   return 0;
 }
 
