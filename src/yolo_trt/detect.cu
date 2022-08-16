@@ -65,7 +65,7 @@ __global__ void gpu_detect_layer(const float* input_, float* output_,
     return;
   }
   //	printf("grid_h:%d,grid_w:%d,class:%d,anchor:%d\n", n_grid_h_, n_grid_w_,
-  //n_classes_, n_anchor_);
+  // n_classes_, n_anchor_);
   const int numGridCells = n_grid_h_ * n_grid_w_;
   const int bbindex = y_id * n_grid_w_ + x_id;
 
@@ -119,20 +119,30 @@ cudaError_t cuda_detect_layer(const void* input_, void* output_,
   return cudaGetLastError();
 }
 
-int Detect::enqueue(int batchSize, const void* const* inputs, void** outputs,
-                    void* workspace, cudaStream_t stream) {
+int Detect::enqueue(int batchSize, const void* const* inputs,
+                    void* const* outputs, void* workspace,
+                    cudaStream_t stream) noexcept {
   NV_CUDA_CHECK(cuda_detect_layer(inputs[0], outputs[0], batchSize, _n_grid_h,
                                   _n_grid_w, _n_classes, _n_anchor,
                                   _n_output_size, stream));
   return 0;
 }
 
-size_t Detect::getSerializationSize() const {
+bool Detect::supportsFormat(DataType type, PluginFormat format) const noexcept {
+  return (type == DataType::kFLOAT && format == PluginFormat::kLINEAR);
+}
+
+void Detect::configureWithFormat(const Dims* inputDims, int nbInputs,
+                                 const Dims* outputDims, int nbOutputs,
+                                 DataType type, PluginFormat format,
+                                 int maxBatchSize) noexcept {}
+
+size_t Detect::getSerializationSize() const noexcept {
   return sizeof(_n_anchor) + sizeof(_n_classes) + sizeof(_n_grid_h) +
          sizeof(_n_grid_w) + sizeof(_n_output_size);
 }
 
-void Detect::serialize(void* buffer) const {
+void Detect::serialize(void* buffer) const noexcept {
   char *d = static_cast<char*>(buffer), *a = d;
   write(d, _n_anchor);
   write(d, _n_classes);
@@ -144,7 +154,7 @@ void Detect::serialize(void* buffer) const {
 
 void Detect::configurePlugin(const PluginTensorDesc* in, int nbInput,
                              const PluginTensorDesc* out, int nbOutput) {}
-IPluginV2IOExt* Detect::clone() const {
+IPluginV2* Detect::clone() const noexcept {
   Detect* p = new Detect(_n_anchor, _n_classes, _n_grid_h, _n_grid_w);
   p->setPluginNamespace(_s_plugin_namespace.c_str());
   return p;
@@ -160,34 +170,38 @@ DetectPluginCreator::DetectPluginCreator() {
   _fc.fields = _vec_plugin_attributes.data();
 }
 
-const char* DetectPluginCreator::getPluginName() const { return "DETECT_TRT"; }
+const char* DetectPluginCreator::getPluginName() const noexcept {
+  return "DETECT_TRT";
+}
 
-const char* DetectPluginCreator::getPluginVersion() const { return "1.0"; }
+const char* DetectPluginCreator::getPluginVersion() const noexcept {
+  return "1.0";
+}
 
-const PluginFieldCollection* DetectPluginCreator::getFieldNames() {
+const PluginFieldCollection* DetectPluginCreator::getFieldNames() noexcept {
   return &_fc;
 }
 
-IPluginV2IOExt* DetectPluginCreator::createPlugin(
-    const char* name, const PluginFieldCollection* fc) {
+IPluginV2* DetectPluginCreator::createPlugin(
+    const char* name, const PluginFieldCollection* fc) noexcept {
   Detect* obj = new Detect();
   obj->setPluginNamespace(_s_name_space.c_str());
   return obj;
 }
 
-IPluginV2IOExt* DetectPluginCreator::deserializePlugin(const char* name,
-                                                       const void* serialData,
-                                                       size_t serialLength) {
+IPluginV2* DetectPluginCreator::deserializePlugin(
+    const char* name, const void* serialData, size_t serialLength) noexcept {
   Detect* obj = new Detect(serialData, serialLength);
   obj->setPluginNamespace(_s_name_space.c_str());
   return obj;
 }
 
-void DetectPluginCreator::setPluginNamespace(const char* libNamespace) {
+void DetectPluginCreator::setPluginNamespace(
+    const char* libNamespace) noexcept {
   _s_name_space = libNamespace;
 }
 
-const char* DetectPluginCreator::getPluginNamespace() const {
+const char* DetectPluginCreator::getPluginNamespace() const noexcept {
   return _s_name_space.c_str();
 }
 }  // end namespace nvinfer1

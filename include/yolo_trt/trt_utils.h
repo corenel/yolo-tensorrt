@@ -1,4 +1,3 @@
-
 /**
 MIT License
 
@@ -68,7 +67,8 @@ class Logger : public nvinfer1::ILogger {
   ~Logger() {}
   nvinfer1::ILogger& getTRTLogger() { return *this; }
 
-  void log(nvinfer1::ILogger::Severity severity, const char* msg) override {
+  void log(nvinfer1::ILogger::Severity severity,
+           const char* msg) noexcept override {
     // suppress info-level messages
     if (severity == Severity::kINFO) return;
 
@@ -92,39 +92,44 @@ class Logger : public nvinfer1::ILogger {
   }
 };
 
-class YoloTinyMaxpoolPaddingFormula
-    : public nvinfer1::IOutputDimensionsFormula {
- private:
-  std::set<std::string> m_SamePaddingLayers;
-
-  nvinfer1::DimsHW compute(nvinfer1::DimsHW inputDims,
-                           nvinfer1::DimsHW kernelSize, nvinfer1::DimsHW stride,
-                           nvinfer1::DimsHW padding, nvinfer1::DimsHW dilation,
-                           const char* layerName) const override {
-    //   assert(inputDims.d[0] == inputDims.d[1]);
-    assert(kernelSize.d[0] == kernelSize.d[1]);
-    assert(stride.d[0] == stride.d[1]);
-    assert(padding.d[0] == padding.d[1]);
-
-    int output_h, output_w;
-    // Only layer maxpool_12 makes use of same padding
-    if (m_SamePaddingLayers.find(layerName) != m_SamePaddingLayers.end()) {
-      output_h = (inputDims.d[0] + 2 * padding.d[0]) / stride.d[0];
-      output_w = (inputDims.d[1] + 2 * padding.d[1]) / stride.d[1];
-    }
-    // Valid Padding
-    else {
-      output_h = (inputDims.d[0] - kernelSize.d[0]) / stride.d[0] + 1;
-      output_w = (inputDims.d[1] - kernelSize.d[1]) / stride.d[1] + 1;
-    }
-    return nvinfer1::DimsHW{output_h, output_w};
-  }
-
- public:
-  void addSamePaddingLayer(std::string input) {
-    m_SamePaddingLayers.insert(input);
-  }
-};
+// class YoloTinyMaxpoolPaddingFormula : public
+// nvinfer1::IOutputDimensionsFormula
+//{
+//
+// private:
+//     std::set<std::string> m_SamePaddingLayers;
+//
+//     nvinfer1::DimsHW compute(nvinfer1::DimsHW inputDims, nvinfer1::DimsHW
+//     kernelSize,
+//                              nvinfer1::DimsHW stride, nvinfer1::DimsHW
+//                              padding, nvinfer1::DimsHW dilation, const char*
+//                              layerName) const override
+//     {
+//      //   assert(inputDims.d[0] == inputDims.d[1]);
+//         assert(kernelSize.d[0] == kernelSize.d[1]);
+//         assert(stride.d[0] == stride.d[1]);
+//         assert(padding.d[0] == padding.d[1]);
+//
+//		int output_h, output_w;
+//         // Only layer maxpool_12 makes use of same padding
+//         if (m_SamePaddingLayers.find(layerName) != m_SamePaddingLayers.end())
+//         {
+//             output_h = (inputDims.d[0] + 2 * padding.d[0]) / stride.d[0];
+//             output_w = (inputDims.d[1] + 2 * padding.d[1]) / stride.d[1];
+//         }
+//         // Valid Padding
+//         else
+//         {
+//             output_h = (inputDims.d[0] - kernelSize.d[0]) / stride.d[0] + 1;
+//             output_w = (inputDims.d[1] - kernelSize.d[1]) / stride.d[1] + 1;
+//         }
+//         return nvinfer1::DimsHW{output_h, output_w};
+//     }
+//
+// public:
+//     void addSamePaddingLayer(std::string input) {
+//     m_SamePaddingLayers.insert(input); }
+// };
 
 // Common helper functions
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
@@ -151,9 +156,9 @@ std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
                                     const std::string& model_type);
 std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh,
                                             std::vector<BBoxInfo> binfo);
-nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath,
-                                     PluginFactory* pluginFactory,
-                                     Logger& logger);
+nvinfer1::ICudaEngine* loadTRTEngine(
+    const std::string planFilePath, /* PluginFactory* pluginFactory,*/
+    Logger& logger);
 std::vector<float> loadWeights(const std::string weightsFilePath,
                                const std::string& networkType);
 std::string dimsToString(const nvinfer1::Dims d);
@@ -219,11 +224,19 @@ nvinfer1::ILayer* layer_conv_bn_act(
     nvinfer1::ITensor* input_, nvinfer1::INetworkDefinition* network_,
     const int n_filters_, const int n_kernel_size_ = 3, const int n_stride_ = 1,
     const int group_ = 1, const bool b_padding_ = true, const bool b_bn_ = true,
-    const std::string s_act_ = "hardswish");
+    const std::string s_act_ = "silu");
 
 nvinfer1::ILayer* layer_act(nvinfer1::ITensor* input_,
                             nvinfer1::INetworkDefinition* network_,
-                            const std::string s_act_ = "hardswish");
+                            const std::string s_act_ = "silu");
+
+nvinfer1::ILayer* C3(std::vector<nvinfer1::Weights>& trtWeights_,
+                     std::string s_model_name_,
+                     std::map<std::string, std::vector<float>>& map_wts_,
+                     nvinfer1::INetworkDefinition* network_,
+                     nvinfer1::ITensor* input_, const int c2_,
+                     const int n_depth_ = 1, const bool b_short_cut_ = true,
+                     const int group_ = 1, const float e_ = 0.5);
 
 nvinfer1::ILayer* layer_bottleneck_csp(
     std::vector<nvinfer1::Weights>& trtWeights_, std::string s_model_name_,
@@ -238,6 +251,12 @@ nvinfer1::ILayer* layer_spp(std::vector<nvinfer1::Weights>& trtWeights_,
                             nvinfer1::INetworkDefinition* network_,
                             nvinfer1::ITensor* input_, const int c2_,
                             const std::vector<int>& vec_args_);
+
+nvinfer1::ILayer* layer_sppf(
+    std::vector<nvinfer1::Weights>& trtWeights_, std::string s_model_name_,
+    std::map<std::string, std::vector<float>>& map_wts_,
+    nvinfer1::INetworkDefinition* network_, nvinfer1::ITensor* input_,
+    const int c2_, int k_);
 
 nvinfer1::ILayer* layer_upsample(
     std::string s_model_name_,

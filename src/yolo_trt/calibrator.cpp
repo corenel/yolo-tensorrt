@@ -25,6 +25,9 @@ SOFTWARE.
 
 #include "yolo_trt/calibrator.h"
 
+#include <cuda.h>
+#include <cuda_runtime.h>
+
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -61,7 +64,7 @@ Int8EntropyCalibrator::~Int8EntropyCalibrator() {
 }
 
 bool Int8EntropyCalibrator::getBatch(void* bindings[], const char* names[],
-                                     int nbBindings) {
+                                     int nbBindings) noexcept {
   if (m_ImageIndex + m_BatchSize >= m_ImageList.size()) return false;
 
   // Load next batch
@@ -82,7 +85,8 @@ bool Int8EntropyCalibrator::getBatch(void* bindings[], const char* names[],
   return true;
 }
 
-const void* Int8EntropyCalibrator::readCalibrationCache(size_t& length) {
+const void* Int8EntropyCalibrator::readCalibrationCache(
+    size_t& length) noexcept {
   void* output;
   m_CalibrationCache.clear();
   assert(!m_CalibTableFilePath.empty());
@@ -109,11 +113,10 @@ const void* Int8EntropyCalibrator::readCalibrationCache(size_t& length) {
 }
 
 void Int8EntropyCalibrator::writeCalibrationCache(const void* cache,
-                                                  size_t length) {
+                                                  size_t length) noexcept {
   assert(!m_CalibTableFilePath.empty());
   std::ofstream output(m_CalibTableFilePath, std::ios::binary);
   output.write(reinterpret_cast<const char*>(cache), length);
   output.close();
 }
-
 }  // namespace yolo_trt

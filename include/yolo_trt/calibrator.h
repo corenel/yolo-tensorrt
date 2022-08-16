@@ -40,10 +40,12 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
       const std::string& inputBlobName, const std::string& s_net_type_);
   virtual ~Int8EntropyCalibrator();
 
-  int getBatchSize() const override { return m_BatchSize; }
-  bool getBatch(void* bindings[], const char* names[], int nbBindings) override;
-  const void* readCalibrationCache(size_t& length) override;
-  void writeCalibrationCache(const void* cache, size_t length) override;
+  int getBatchSize() const noexcept override { return m_BatchSize; }
+  bool getBatch(void* bindings[], const char* names[],
+                int nbBindings) noexcept override;
+  const void* readCalibrationCache(size_t& length) noexcept override;
+  void writeCalibrationCache(const void* cache,
+                             size_t length) noexcept override;
 
  private:
   const uint32_t m_BatchSize;
@@ -60,7 +62,5 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
   std::vector<std::string> m_ImageList;
   std::vector<char> m_CalibrationCache;
 };
-
 }  // namespace yolo_trt
-
 #endif

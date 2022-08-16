@@ -1,11 +1,9 @@
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-namespace yolo_trt {
 
 inline __device__ float sigmoidGPU(const float& x) {
   return 1.0f / (1.0f + __expf(-x));
@@ -71,5 +69,3 @@ cudaError_t cudaYoloLayerV3(const void* input, void* output,
   }
   return cudaGetLastError();
 }
-
-}  // namespace yolo_trt

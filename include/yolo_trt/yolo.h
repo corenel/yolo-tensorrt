@@ -39,7 +39,7 @@ SOFTWARE.
 #include "cuda_runtime_api.h"
 #include "detect.h"
 #include "opencv2/opencv.hpp"
-#include "plugin_factory.h"
+//#include "plugin_factory.h"
 #include "trt_utils.h"
 //#include "logging.h"
 
@@ -162,8 +162,8 @@ class Yolo {
   std::vector<void*> m_DeviceBuffers;
   int m_InputBindingIndex;
   cudaStream_t m_CudaStream;
-  PluginFactory* m_PluginFactory;
-  std::unique_ptr<YoloTinyMaxpoolPaddingFormula> m_TinyMaxpoolPaddingFormula;
+  // PluginFactory* m_PluginFactory;
+  // std::unique_ptr<YoloTinyMaxpoolPaddingFormula> m_TinyMaxpoolPaddingFormula;
 
   virtual std::vector<BBoxInfo> decodeTensor(const int imageIdx,
                                              const int imageH, const int imageW,

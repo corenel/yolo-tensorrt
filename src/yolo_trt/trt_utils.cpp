@@ -37,6 +37,7 @@ using namespace nvinfer1;
 REGISTER_TENSORRT_PLUGIN(MishPluginCreator);
 REGISTER_TENSORRT_PLUGIN(ChunkPluginCreator);
 REGISTER_TENSORRT_PLUGIN(HardswishPluginCreator);
+REGISTER_TENSORRT_PLUGIN(YoloLayerPluginCreator);
 
 cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
                          const int& inputH, const int& inputW) {
@@ -292,7 +293,6 @@ std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh,
 }
 
 nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath,
-                                     PluginFactory* pluginFactory,
                                      Logger& logger) {
   // reading the model in memory
   std::cout << "Loading TRT Engine..." << std::endl;
@@ -313,7 +313,7 @@ nvinfer1::ICudaEngine* loadTRTEngine(const std::string planFilePath,
 
   nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(logger);
   nvinfer1::ICudaEngine* engine =
-      runtime->deserializeCudaEngine(modelMem, modelSize, pluginFactory);
+      runtime->deserializeCudaEngine(modelMem, modelSize);
   free(modelMem);
   runtime->destroy();
   std::cout << "Loading Complete!" << std::endl;
@@ -386,20 +386,20 @@ std::string dimsToString(const nvinfer1::Dims d) {
 void displayDimType(const nvinfer1::Dims d) {
   std::cout << "(" << d.nbDims << ") ";
   for (int i = 0; i < d.nbDims; ++i) {
-    switch (d.type[i]) {
-      case nvinfer1::DimensionType::kSPATIAL:
-        std::cout << "kSPATIAL ";
-        break;
-      case nvinfer1::DimensionType::kCHANNEL:
-        std::cout << "kCHANNEL ";
-        break;
-      case nvinfer1::DimensionType::kINDEX:
-        std::cout << "kINDEX ";
-        break;
-      case nvinfer1::DimensionType::kSEQUENCE:
-        std::cout << "kSEQUENCE ";
-        break;
-    }
+    // switch (d.type[i]) {
+    //   case nvinfer1::DimensionType::kSPATIAL:
+    //     std::cout << "kSPATIAL ";
+    //     break;
+    //   case nvinfer1::DimensionType::kCHANNEL:
+    //     std::cout << "kCHANNEL ";
+    //     break;
+    //   case nvinfer1::DimensionType::kINDEX:
+    //     std::cout << "kINDEX ";
+    //     break;
+    //   case nvinfer1::DimensionType::kSEQUENCE:
+    //     std::cout << "kSEQUENCE ";
+    //     break;
+    // }
   }
   std::cout << std::endl;
 }
