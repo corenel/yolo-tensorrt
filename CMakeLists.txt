@@ -1,42 +1,129 @@
-cmake_minimum_required(VERSION 3.1)
-project(yolo_trt VERSION 1.0)
+cmake_minimum_required(VERSION 3.5)
+
+# ##############################################################################
+# Metadata #
+# ##############################################################################
+
+# Read the package manifest.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/package.xml" package_xml_str)
+
+# Extract project name.
+if(NOT package_xml_str MATCHES "<name>([A-Za-z0-9_]+)</name>")
+  message(
+    FATAL_ERROR "Could not parse project name from package manifest (aborting)")
+else()
+  set(extracted_name ${CMAKE_MATCH_1})
+endif()
+
+# Extract project version.
+if(NOT package_xml_str MATCHES "<version>([0-9]+.[0-9]+.[0-9]+)</version>")
+  message(
+    FATAL_ERROR
+      "Could not parse project version from package manifest (aborting)")
+else()
+  # At this point we either have a proper version string, or we've errored out
+  # with a FATAL_ERROR above. So assume CMAKE_MATCH_1 contains our package's
+  # version.
+  set(extracted_version ${CMAKE_MATCH_1})
+endif()
+
+# ##############################################################################
+# CMake Project ##
+# ##############################################################################
+
+project(
+  ${extracted_name}
+  VERSION ${extracted_version}
+  LANGUAGES CXX)
+
 enable_language(CUDA)
 
-set(CMAKE_CXX_COMPILIER "/usr/bin/g++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3 -Wno-write-strings")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,$ORIGIN")
+# =============#
+# Dependencies #
+# =============#
 
-#cuda
-#export PATH=/usr/local/cuda-11.0/bin:$PATH
-#include_directories(/usr/local/cuda/include)
-#link_directories(/usr/local/cuda/lib64)
+# ----------------------#
+# Third-party libraries #
+# ----------------------#
+
 find_package(CUDA REQUIRED)
+find_package(OpenCV REQUIRED)
 
-#opencv
-#set(OpenCV_DIR /opt/opencv-4.1.2/share/OpenCV)
-find_package(OpenCV 4 REQUIRED)
+# =========#
+# Settings #
+# =========#
 
-#detector lib (cuda)
+# shared libraries
+if(NOT DEFINED BUILD_SHARED_LIBS)
+  message(STATUS "${PROJECT_NAME}: Building dynamically-linked binaries")
+  option(BUILD_SHARED_LIBS "Build dynamically-linked binaries" ON)
+  set(BUILD_SHARED_LIBS ON)
+endif()
+
+# build type
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  message(STATUS "${PROJECT_NAME}: Defaulting build type to RelWithDebInfo")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
+# win32
+if(WIN32)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
+# global compilations
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_definitions(-O2)
+
+# useful macros
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/util.cmake)
+
+# ##############################################################################
+# Build #
+# ##############################################################################
+
+# ==============#
+# Build targets #
+# ==============#
+
+include(GenerateExportHeader)
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+
+# ---------------#
+# Library target #
+# ---------------#
+
+# find all source files
 file(GLOB_RECURSE sources src/*.cpp src/*.cu)
-add_library(${PROJECT_NAME} SHARED ${sources})
-target_include_directories(
-	${PROJECT_NAME}
-	PRIVATE
-	include/
-	${OpenCV_INCLUDE_DIRS}
-	${CUDA_TOOLKIT_ROOT_DIR}/include
-	${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-	)
-target_link_libraries(
-	${PROJECT_NAME}
-	nvinfer
-	nvinfer_plugin
-	nvcaffe_parser
-	"stdc++fs"
-	${OpenCV_LIBS}
-	)
 
-#sample
-add_executable(${PROJECT_NAME}_sample samples/sample_detector.cpp)
-target_include_directories(${PROJECT_NAME}_sample PRIVATE include/)
-target_link_libraries(${PROJECT_NAME}_sample ${PROJECT_NAME} ${OpenCV_LIBS})
+# common library
+zetton_cc_library(
+  NAME
+  ${PROJECT_NAME}
+  SRCS
+  ${sources}
+  INCLUDES
+  include/
+  ${OpenCV_INCLUDE_DIRS}
+  ${CUDA_TOOLKIT_ROOT_DIR}/include
+  ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+  DEPS
+  ${OpenCV_LIBS}
+  nvinfer
+  nvinfer_plugin
+  nvparsers
+  "stdc++fs")
+
+# -------------------#
+# Executable targets #
+# -------------------#
+add_simple_excutables("samples")
+
+# -------------#
+# Test targets #
+# -------------#
+add_tests_in_dir("inference")
