@@ -79,7 +79,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_definitions(-O2)
 
 # useful macros
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/util.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/util.cmake)
 
 # ##############################################################################
 # Build #
@@ -107,7 +107,6 @@ zetton_cc_library(
   SRCS
   ${sources}
   INCLUDES
-  include/
   ${OpenCV_INCLUDE_DIRS}
   ${CUDA_TOOLKIT_ROOT_DIR}/include
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
