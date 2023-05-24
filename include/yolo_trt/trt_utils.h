@@ -27,7 +27,7 @@ SOFTWARE.
 #define __TRT_UTILS_H__
 
 /* OpenCV headers */
-//#include <opencv/cv.h>
+// #include <opencv/cv.h>
 #include <math.h>
 
 #include <algorithm>
@@ -40,31 +40,36 @@ SOFTWARE.
 
 #include "NvInfer.h"
 #include "chunk.h"
+#include "class_detector.h"
 #include "ds_image.h"
 #include "hardswish.h"
 #include "mish.h"
 #include "plugin_factory.h"
-//#include "logging.h"
+// #include "logging.h"
 
 namespace yolo_trt {
 
 class DsImage;
 struct BBox {
-  float x1, y1, x2, y2;
+  float x1 = 0;
+  float y1 = 0;
+  float x2 = 0;
+  float y2 = 0;
 };
 
 struct BBoxInfo {
   BBox box;
-  int label;
-  int classId;  // For coco benchmarking
-  float prob;
+  int label = 0;
+  int classId = 0;  // For coco benchmarking
+  float prob = 0.f;
 };
 
 class Logger : public nvinfer1::ILogger {
  public:
-  Logger(Severity severity = Severity::kWARNING) {}
+  Logger(Severity severity = Severity::kWARNING) { severity = severity; }
 
-  ~Logger() {}
+  ~Logger() = default;
+
   nvinfer1::ILogger& getTRTLogger() { return *this; }
 
   void log(nvinfer1::ILogger::Severity severity,
@@ -132,8 +137,8 @@ class Logger : public nvinfer1::ILogger {
 // };
 
 // Common helper functions
-cv::Mat blobFromDsImages(const std::vector<DsImage>& inputImages,
-                         const int& inputH, const int& inputW);
+void blobFromDsImages(const std::vector<DsImage>& inputImages, cv::Mat& blob,
+                      const int& inputH, const int& inputW);
 std::string trim(std::string s);
 std::string triml(std::string s, const char* t);
 std::string trimr(std::string s, const char* t);
@@ -153,14 +158,13 @@ std::vector<BBoxInfo> diou_nms(const float numThresh,
 std::vector<BBoxInfo> nmsAllClasses(const float nmsThresh,
                                     std::vector<BBoxInfo>& binfo,
                                     const uint32_t numClasses,
-                                    const std::string& model_type);
+                                    yolo_trt::ModelType model_type);
 std::vector<BBoxInfo> nonMaximumSuppression(const float nmsThresh,
                                             std::vector<BBoxInfo> binfo);
 nvinfer1::ICudaEngine* loadTRTEngine(
     const std::string planFilePath, /* PluginFactory* pluginFactory,*/
     Logger& logger);
-std::vector<float> loadWeights(const std::string weightsFilePath,
-                               const std::string& networkType);
+std::vector<float> LoadWeights(const std::string weightsFilePath);
 std::string dimsToString(const nvinfer1::Dims d);
 void displayDimType(const nvinfer1::Dims d);
 int getNumChannels(nvinfer1::ITensor* t);

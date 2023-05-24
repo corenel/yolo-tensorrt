@@ -41,9 +41,6 @@ static void decodeBatchDetections(const YoloPluginCtx* ctx,
     std::vector<BBoxInfo> binfo = ctx->inferenceNetwork->decodeDetections(
         p, ctx->initParams.processingHeight, ctx->initParams.processingWidth);
     std::vector<BBoxInfo> remaining;
-    /*std::vector<BBoxInfo> remaining = nmsAllClasses(
-            ctx->inferenceNetwork->getNMSThresh(), binfo,
-       ctx->inferenceNetwork->getNumClasses(),);*/
     out->numObjects = remaining.size();
     assert(out->numObjects <= MAX_OBJECTS_PER_FRAME);
     for (uint32_t j = 0; j < remaining.size(); ++j) {
@@ -99,27 +96,19 @@ static void dsPreProcessBatchInput(const std::vector<cv::Mat*>& cvmats,
 
 YoloPluginCtx* YoloPluginCtxInit(YoloPluginInitParams* initParams,
                                  size_t batchSize) {
-  char** gArgV = new char*[2];
-  gArgV[0] = new char[64];
-  gArgV[1] = new char[512];
-  strcpy(gArgV[0], "yolo_plugin_ctx");
-  strcpy(gArgV[1],
-         std::string("--flagfile=" + initParams->configFilePath).c_str());
-  //    yoloConfigParserInit(2, gArgV);
-
   YoloPluginCtx* ctx = new YoloPluginCtx;
   ctx->initParams = *initParams;
   ctx->batchSize = batchSize;
-  ctx->networkInfo;          // = getYoloNetworkInfo();
-  ctx->inferParams;          // = getYoloInferParams();
-  uint32_t configBatchSize;  // = getBatchSize();
+  // ctx->networkInfo;// = getYoloNetworkInfo();
+  // ctx->inferParams;// = getYoloInferParams();
+  uint32_t configBatchSize = 0;  // = getBatchSize();
 
   // Check if config batchsize matches buffer batch size in the pipeline
   if (ctx->batchSize != configBatchSize) {
     std::cerr << "WARNING: Batchsize set in config file overriden by pipeline. "
                  "New batchsize is "
               << ctx->batchSize << std::endl;
-    int npos = ctx->networkInfo.wtsFilePath.find(".weights");
+    auto npos = ctx->networkInfo.wtsFilePath.find(".weights");
     assert(
         npos != std::string::npos &&
         "wts file file not recognised. File needs to be of '.weights' format");
@@ -129,23 +118,16 @@ YoloPluginCtx* YoloPluginCtxInit(YoloPluginInitParams* initParams,
                                   ".engine";
   }
 
-  if ((ctx->networkInfo.networkType == "yolov2") ||
-      (ctx->networkInfo.networkType == "yolov2-tiny")) {
-    ctx->inferenceNetwork = new YoloV2(ctx->networkInfo, ctx->inferParams);
-  } else if ((ctx->networkInfo.networkType == "yolov3") ||
-             (ctx->networkInfo.networkType == "yolov3-tiny")) {
+  if ((ctx->networkInfo.m_networkType == yolo_trt::YOLOV3) ||
+      (ctx->networkInfo.m_networkType == yolo_trt::YOLOV3_TINY)) {
     ctx->inferenceNetwork = new YoloV3(ctx->networkInfo, ctx->inferParams);
   } else {
     std::cerr << "ERROR: Unrecognized network type "
-              << ctx->networkInfo.networkType << std::endl;
-    std::cerr << "Network Type has to be one among the following : yolov2, "
-                 "yolov2-tiny, yolov3 "
-                 "and yolov3-tiny"
-              << std::endl;
-    return nullptr;
+              << (int)ctx->networkInfo.m_networkType << std::endl;
+    delete ctx;
+    ctx = nullptr;
   }
 
-  delete[] gArgV;
   return ctx;
 }
 
@@ -161,20 +143,20 @@ std::vector<YoloPluginOutput*> YoloPluginProcess(
       inferStart, inferEnd, postStart, postEnd;
 
   if (cvmats.size() > 0) {
-    //		preStart = std::chrono::high_resolution_clock::now();
+    preStart = std::chrono::steady_clock::now();
     dsPreProcessBatchInput(
         cvmats, preprocessedImages, ctx->initParams.processingWidth,
         ctx->initParams.processingHeight, ctx->inferenceNetwork->getInputH(),
         ctx->inferenceNetwork->getInputW());
-    //		preEnd = std::chrono::high_resolution_clock::now();
+    preEnd = std::chrono::steady_clock::now();
 
-    //		inferStart = std::chrono::high_resolution_clock::now();
+    inferStart = std::chrono::steady_clock::now();
     ctx->inferenceNetwork->doInference(preprocessedImages.data, cvmats.size());
-    //      inferEnd = std::chrono::high_resolution_clock::now();
+    inferEnd = std::chrono::steady_clock::now();
 
-    //		postStart = std::chrono::high_resolution_clock::now();
+    postStart = std::chrono::steady_clock::now();
     decodeBatchDetections(ctx, outputs);
-    //		postEnd = std::chrono::high_resolution_clock::now();
+    postEnd = std::chrono::steady_clock::now();
   }
 
   // Perf calc

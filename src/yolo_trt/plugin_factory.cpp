@@ -2,94 +2,10 @@
 
 #include "yolo_trt/trt_utils.h"
 
-// PluginFactory::PluginFactory() : m_ReorgLayer{nullptr},
-// m_RegionLayer{nullptr}
-//{
-//     for (int i = 0; i < m_MaxLeakyLayers; ++i) m_LeakyReLULayers[i] =
-//     nullptr;
-// }
-//
-// nvinfer1::IPlugin* PluginFactory::createPlugin(const char* layerName, const
-// void* serialData,
-//                                                size_t serialLength)
-//{
-//     assert(isPlugin(layerName));
-//     if (std::string(layerName).find("leaky") != std::string::npos)
-//     {
-//         assert(m_LeakyReLUCount >= 0 && m_LeakyReLUCount <=
-//         m_MaxLeakyLayers); assert(m_LeakyReLULayers[m_LeakyReLUCount] ==
-//         nullptr);
-//		/*m_LeakyReLULayers[m_LeakyReLUCount]
-//			=
-// unique_ptr_INvPlugin(nvinfer1::plugin::createPReLUPlugin(serialData,
-// serialLength));*/
-//         ++m_LeakyReLUCount;
-//         return m_LeakyReLULayers[m_LeakyReLUCount - 1].get();
-//     }
-//     else if (std::string(layerName).find("reorg") != std::string::npos)
-//     {
-//         assert(m_ReorgLayer == nullptr);
-//         /*m_ReorgLayer = unique_ptr_INvPlugin(
-//             nvinfer1::plugin::createYOLOReorgPlugin(serialData,
-//             serialLength));*/
-//         return m_ReorgLayer.get();
-//     }
-//     else if (std::string(layerName).find("region") != std::string::npos)
-//     {
-//         assert(m_RegionLayer == nullptr);
-//		/*m_RegionLayer = unique_ptr_INvPlugin(
-//			 nvinfer1::plugin::createYOLORegionPlugin(serialData,
-// serialLength));*/
-//         return m_RegionLayer.get();
-//     }
-//     else if (std::string(layerName).find("yolo") != std::string::npos)
-//     {
-//         assert(m_YoloLayerCount >= 0 && m_YoloLayerCount < m_MaxYoloLayers);
-//         assert(m_YoloLayers[m_YoloLayerCount] == nullptr);
-//         m_YoloLayers[m_YoloLayerCount]
-//             = unique_ptr_IPlugin(new YoloLayerV3(serialData, serialLength));
-//         ++m_YoloLayerCount;
-//         return m_YoloLayers[m_YoloLayerCount - 1].get();
-//     }
-//     else
-//     {
-//         std::cerr << "ERROR: Unrecognised layer : " << layerName <<
-//         std::endl; assert(0); return nullptr;
-//     }
-// }
-//
-// bool PluginFactory::isPlugin(const char* name)
-//{
-//     return ((std::string(name).find("leaky") != std::string::npos)
-//             || (std::string(name).find("reorg") != std::string::npos)
-//             || (std::string(name).find("region") != std::string::npos)
-//             || (std::string(name).find("yolo") != std::string::npos));
-// }
-//
-// void PluginFactory::destroy()
-//{
-//     m_ReorgLayer.reset();
-//     m_RegionLayer.reset();
-//
-//     for (int i = 0; i < m_MaxLeakyLayers; ++i)
-//     {
-//         m_LeakyReLULayers[i].reset();
-//     }
-//
-//     for (int i = 0; i < m_MaxYoloLayers; ++i)
-//     {
-//         m_YoloLayers[i].reset();
-//     }
-//
-//     m_LeakyReLUCount = 0;
-//     m_YoloLayerCount = 0;
-// }
-
 /******* Yolo Layer V3 *******/
 /*****************************/
 
 namespace nvinfer1 {
-YoloLayer::YoloLayer() {}
 
 YoloLayer::YoloLayer(const void* data, size_t length) {
   const char *d = static_cast<const char*>(data), *a = d;
@@ -100,6 +16,7 @@ YoloLayer::YoloLayer(const void* data, size_t length) {
   re(d, m_OutputSize);
   assert(d = a + length);
 }
+
 void YoloLayer::serialize(void* buffer) const noexcept {
   char *d = static_cast<char*>(buffer), *a = d;
   wr(d, m_NumBoxes);
@@ -115,10 +32,11 @@ bool YoloLayer::supportsFormat(DataType type,
   return (type == DataType::kFLOAT && format == PluginFormat::kLINEAR);
 }
 
-void YoloLayer::configureWithFormat(const Dims* inputDims, int nbInputs,
-                                    const Dims* outputDims, int nbOutputs,
-                                    DataType type, PluginFormat format,
-                                    int maxBatchSize) noexcept {}
+void YoloLayer::configureWithFormat(const Dims* /*inputDims*/, int /*nbInputs*/,
+                                    const Dims* /*outputDims*/,
+                                    int /*nbOutputs*/, DataType /*type*/,
+                                    PluginFormat /*format*/,
+                                    int /*maxBatchSize*/) noexcept {}
 
 IPluginV2* YoloLayer::clone() const noexcept {
   YoloLayer* p = new YoloLayer(m_NumBoxes, m_NumClasses, _n_grid_h, _n_grid_w);
@@ -161,17 +79,22 @@ int YoloLayer::initialize() noexcept { return 0; }
 
 void YoloLayer::terminate() noexcept {}
 
-size_t YoloLayer::getWorkspaceSize(int maxBatchSize) const noexcept {
+size_t YoloLayer::getWorkspaceSize(int /*maxBatchSize*/) const noexcept {
   return 0;
 }
 
 int YoloLayer::enqueue(int batchSize, const void* const* inputs,
-                       void* const* outputs, void* workspace,
+                       void* const* outputs, void* /*workspace*/,
                        cudaStream_t stream) noexcept {
   NV_CUDA_CHECK(cudaYoloLayerV3(inputs[0], outputs[0], batchSize, _n_grid_h,
                                 _n_grid_w, m_NumClasses, m_NumBoxes,
                                 m_OutputSize, stream));
   return 0;
+}
+
+int YoloLayer::enqueue(int batchSize, const void* const* inputs, void** outputs,
+                       void* workspace, cudaStream_t stream) noexcept {
+  return enqueue(batchSize, inputs, (void* const*)outputs, workspace, stream);
 }
 
 size_t YoloLayer::getSerializationSize() const noexcept {
@@ -202,16 +125,17 @@ const PluginFieldCollection* YoloLayerPluginCreator::getFieldNames() noexcept {
 }
 
 IPluginV2* YoloLayerPluginCreator::createPlugin(
-    const char* name, const PluginFieldCollection* fc) noexcept {
+    const char* /*name*/, const PluginFieldCollection* /*fc*/) noexcept {
   YoloLayer* obj = new YoloLayer();
   obj->setPluginNamespace(mNamespace.c_str());
   return obj;
 }
 
 IPluginV2* YoloLayerPluginCreator::deserializePlugin(
-    const char* name, const void* serialData, size_t serialLength) noexcept {
-  // This object will be deleted when the network is destroyed, which will
-  // call MishPlugin::destroy()
+    const char* /*name*/, const void* serialData,
+    size_t serialLength) noexcept {
+  // This object will be deleted when the network is destroyed, which will call
+  // MishPlugin::destroy()
   YoloLayer* obj = new YoloLayer(serialData, serialLength);
   obj->setPluginNamespace(mNamespace.c_str());
   return obj;
@@ -225,5 +149,4 @@ void YoloLayerPluginCreator::setPluginNamespace(
 const char* YoloLayerPluginCreator::getPluginNamespace() const noexcept {
   return mNamespace.c_str();
 }
-
 }  // namespace nvinfer1

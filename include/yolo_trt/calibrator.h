@@ -37,7 +37,7 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
       const uint32_t& batchSize, const std::string& calibImages,
       const std::string& calibImagesPath, const std::string& calibTableFilePath,
       const uint64_t& inputSize, const uint32_t& inputH, const uint32_t& inputW,
-      const std::string& inputBlobName, const std::string& s_net_type_);
+      const std::string& inputBlobName, yolo_trt::ModelType netType);
   virtual ~Int8EntropyCalibrator();
 
   int getBatchSize() const noexcept override { return m_BatchSize; }
@@ -53,14 +53,16 @@ class Int8EntropyCalibrator : public nvinfer1::IInt8EntropyCalibrator2 {
   const uint32_t m_InputW;
   const uint64_t m_InputSize;
   const uint64_t m_InputCount;
+  const yolo_trt::ModelType m_netType;
   const std::string m_InputBlobName;
-  const std::string _s_net_type;
   const std::string m_CalibTableFilePath{nullptr};
-  uint32_t m_ImageIndex;
+  uint32_t m_ImageIndex = 0;
   bool m_ReadCache{true};
   void* m_DeviceInput{nullptr};
   std::vector<std::string> m_ImageList;
   std::vector<char> m_CalibrationCache;
+  cv::Mat m_blob;
 };
+
 }  // namespace yolo_trt
 #endif

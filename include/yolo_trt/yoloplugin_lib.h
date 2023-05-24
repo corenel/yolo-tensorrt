@@ -25,15 +25,15 @@ SOFTWARE.
 #ifndef __YOLOPLUGIN_LIB__
 #define __YOLOPLUGIN_LIB__
 
-//#include <glib.h>
+// #include <glib.h>
 
 #include "calibrator.h"
 #include "trt_utils.h"
 #include "yolo.h"
 
-//#ifdef __cplusplus
-// extern "C" {
-//#endif
+// #ifdef __cplusplus
+//  extern "C" {
+// #endif
 
 namespace yolo_trt {
 
@@ -41,16 +41,16 @@ namespace yolo_trt {
 typedef struct YoloPluginCtx YoloPluginCtx;
 typedef struct YoloPluginOutput YoloPluginOutput;
 // Init parameters structure as input, required for instantiating yoloplugin_lib
-typedef struct {
+struct YoloPluginInitParams {
   // Width at which frame/object will be scaled
-  int processingWidth;
+  int processingWidth = 0;
   // height at which frame/object will be scaled
-  int processingHeight;
+  int processingHeight = 0;
   // Flag to indicate whether operating on crops of full frame
-  int fullFrame;
+  int fullFrame = 0;
   // Plugin config file
   std::string configFilePath;
-} YoloPluginInitParams;
+};
 
 struct YoloPluginCtx {
   YoloPluginInitParams initParams;
@@ -59,7 +59,7 @@ struct YoloPluginCtx {
   Yolo* inferenceNetwork;
 
   // perf vars
-  float inferTime = 0.0, preTime = 0.0, postTime = 0.0;
+  double inferTime = 0.0, preTime = 0.0, postTime = 0.0;
   uint32_t batchSize = 0;
   uint64_t imageCount = 0;
 };
@@ -90,10 +90,10 @@ std::vector<YoloPluginOutput*> YoloPluginProcess(YoloPluginCtx* ctx,
 // Deinitialize library context
 void YoloPluginCtxDeinit(YoloPluginCtx* ctx);
 
-//#ifdef __cplusplus
-//}
-//#endif
-
 }  // namespace yolo_trt
+
+// #ifdef __cplusplus
+// }
+// #endif
 
 #endif

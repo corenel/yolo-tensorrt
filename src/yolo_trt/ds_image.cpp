@@ -24,28 +24,18 @@ SOFTWARE.
 */
 #include "yolo_trt/ds_image.h"
 
+#ifdef HAVE_FILESYSTEM
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 
 namespace yolo_trt {
 
-DsImage::DsImage()
-    : m_Height(0),
-      m_Width(0),
-      m_XOffset(0),
-      m_YOffset(0),
-      m_ScalingFactor(0.0),
-      m_RNG(cv::RNG(unsigned(std::time(0)))),
-      m_ImageName() {}
-
-DsImage::DsImage(const cv::Mat& mat_image_, const std::string& s_net_type_,
-                 const int& inputH, const int& inputW)
-    : m_Height(0),
-      m_Width(0),
-      m_XOffset(0),
-      m_YOffset(0),
-      m_ScalingFactor(0.0),
-      m_RNG(cv::RNG(unsigned(std::time(0)))),
-      m_ImageName() {
+DsImage::DsImage(const cv::Mat& mat_image_, yolo_trt::ModelType net_type,
+                 const int& inputH, const int& inputW) {
   m_OrigImage = mat_image_;
   m_Height = m_OrigImage.rows;
   m_Width = m_OrigImage.cols;
@@ -57,15 +47,17 @@ DsImage::DsImage(const cv::Mat& mat_image_, const std::string& s_net_type_,
     std::cout << "Non RGB images are not supported " << std::endl;
     assert(0);
   }
-  if ("yolov5" == s_net_type_) {
+  if (yolo_trt::ModelType::YOLOV5 == net_type ||
+      yolo_trt::ModelType::YOLOV6 == net_type ||
+      yolo_trt::ModelType::YOLOV7 == net_type ||
+      yolo_trt::ModelType::YOLOV7Mask == net_type ||
+      yolo_trt::ModelType::YOLOV8 == net_type) {
     // resize the DsImage with scale
-    float dim = std::max(m_Height, m_Width);
-    int resizeH = ((m_Height / dim) * inputH);
-    int resizeW = ((m_Width / dim) * inputW);
-    m_ScalingFactor =
-        static_cast<float>(resizeH) / static_cast<float>(m_Height);
-    float m_ScalingFactorw =
-        static_cast<float>(resizeW) / static_cast<float>(m_Width);
+    float r =
+        std::min(static_cast<float>(inputH) / static_cast<float>(m_Height),
+                 static_cast<float>(inputW) / static_cast<float>(m_Width));
+    int resizeH = (std::round(m_Height * r));
+    int resizeW = (std::round(m_Width * r));
 
     // Additional checks for images with non even dims
     if ((inputW - resizeW) % 2) resizeW--;
@@ -81,31 +73,20 @@ DsImage::DsImage(const cv::Mat& mat_image_, const std::string& s_net_type_,
 
     // resizing
     cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0,
-               cv::INTER_CUBIC);
+               cv::INTER_LINEAR);
     // letterboxing
     cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset,
                        m_XOffset, m_XOffset, cv::BORDER_CONSTANT,
                        cv::Scalar(128, 128, 128));
-    //	cv::imwrite("letter.jpg", m_LetterboxImage);
-    // converting to RGB
-    // cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
   } else {
     cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0,
-               cv::INTER_CUBIC);
-    // converting to RGB
-    // cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+               cv::INTER_LINEAR);
   }
 }
-DsImage::DsImage(const std::string& path, const std::string& s_net_type_,
-                 const int& inputH, const int& inputW)
-    : m_Height(0),
-      m_Width(0),
-      m_XOffset(0),
-      m_YOffset(0),
-      m_ScalingFactor(0.0),
-      m_RNG(cv::RNG(unsigned(std::time(0)))),
-      m_ImageName() {
-  m_ImageName = std::experimental::filesystem::path(path).stem().string();
+
+DsImage::DsImage(const std::string& path, yolo_trt::ModelType net_type,
+                 const int& inputH, const int& inputW) {
+  m_ImageName = fs::path(path).stem().string();
   m_OrigImage = cv::imread(path, cv::IMREAD_UNCHANGED);
   m_Height = m_OrigImage.rows;
   m_Width = m_OrigImage.cols;
@@ -119,15 +100,17 @@ DsImage::DsImage(const std::string& path, const std::string& s_net_type_,
     assert(0);
   }
 
-  if ("yolov5" == s_net_type_) {
+  if (yolo_trt::ModelType::YOLOV5 == net_type ||
+      yolo_trt::ModelType::YOLOV6 == net_type ||
+      yolo_trt::ModelType::YOLOV7 == net_type ||
+      yolo_trt::ModelType::YOLOV7Mask == net_type ||
+      yolo_trt::ModelType::YOLOV8 == net_type) {
     // resize the DsImage with scale
     float dim = std::max(m_Height, m_Width);
     int resizeH = ((m_Height / dim) * inputH);
     int resizeW = ((m_Width / dim) * inputW);
     m_ScalingFactor =
         static_cast<float>(resizeH) / static_cast<float>(m_Height);
-    float m_ScalingFactorw =
-        static_cast<float>(resizeW) / static_cast<float>(m_Width);
 
     // Additional checks for images with non even dims
     if ((inputW - resizeW) % 2) resizeW--;
@@ -143,19 +126,14 @@ DsImage::DsImage(const std::string& path, const std::string& s_net_type_,
 
     // resizing
     cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0,
-               cv::INTER_CUBIC);
+               cv::INTER_LINEAR);
     // letterboxing
     cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset,
                        m_XOffset, m_XOffset, cv::BORDER_CONSTANT,
                        cv::Scalar(128, 128, 128));
-    //	cv::imwrite("letter.jpg", m_LetterboxImage);
-    // converting to RGB
-    //	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
   } else {
     cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(inputW, inputH), 0, 0,
-               cv::INTER_CUBIC);
-    // converting to RGB
-    //	cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
+               cv::INTER_LINEAR);
   }
 }
 
@@ -169,8 +147,6 @@ void DsImage::letterbox(const int& inputH, const int& inputW) {
   int resizeH = ((m_Height / dim) * inputH);
   int resizeW = ((m_Width / dim) * inputW);
   m_ScalingFactor = static_cast<float>(resizeH) / static_cast<float>(m_Height);
-  float m_ScalingFactorw =
-      static_cast<float>(resizeW) / static_cast<float>(m_Width);
 
   // Additional checks for images with non even dims
   if ((inputW - resizeW) % 2) resizeW--;
@@ -186,24 +162,22 @@ void DsImage::letterbox(const int& inputH, const int& inputW) {
 
   // resizing
   cv::resize(m_OrigImage, m_LetterboxImage, cv::Size(resizeW, resizeH), 0, 0,
-             cv::INTER_CUBIC);
+             cv::INTER_LINEAR);
   // letterboxing
   cv::copyMakeBorder(m_LetterboxImage, m_LetterboxImage, m_YOffset, m_YOffset,
                      m_XOffset, m_XOffset, cv::BORDER_CONSTANT,
                      cv::Scalar(128, 128, 128));
   //	cv::imwrite("letter.jpg", m_LetterboxImage);
-  // converting to RGB
-  cv::cvtColor(m_LetterboxImage, m_LetterboxImage, cv::COLOR_BGR2RGB);
 }
 
 void DsImage::addBBox(BBoxInfo box, const std::string& labelName) {
   m_Bboxes.push_back(box);
-  const int x = box.box.x1;
-  const int y = box.box.y1;
-  const int w = box.box.x2 - box.box.x1;
-  const int h = box.box.y2 - box.box.y1;
-  const cv::Scalar color = cv::Scalar(
-      m_RNG.uniform(0, 255), m_RNG.uniform(0, 255), m_RNG.uniform(0, 255));
+  const int x = cvRound(box.box.x1);
+  const int y = cvRound(box.box.y1);
+  const int w = cvRound(box.box.x2 - box.box.x1);
+  const int h = cvRound(box.box.y2 - box.box.y1);
+  const cv::Scalar color(m_RNG.uniform(0, 255), m_RNG.uniform(0, 255),
+                         m_RNG.uniform(0, 255));
 
   cv::rectangle(m_MarkedImage, cv::Rect(x, y, w, h), color, 1);
   const cv::Size tsize = cv::getTextSize(
@@ -216,14 +190,17 @@ void DsImage::addBBox(BBoxInfo box, const std::string& labelName) {
 }
 
 void DsImage::showImage() const {
-  cv::namedWindow(m_ImageName);
-  cv::imshow(m_ImageName.c_str(), m_MarkedImage);
-  cv::waitKey(0);
+#ifndef SILENT_WORK
+  // cv::namedWindow(m_ImageName);
+  // cv::imshow(m_ImageName.c_str(), m_MarkedImage);
+  // cv::waitKey(0);
+#endif
 }
 
 void DsImage::saveImageJPEG(const std::string& dirPath) const {
   cv::imwrite(dirPath + m_ImageName + ".jpeg", m_MarkedImage);
 }
+
 std::string DsImage::exportJson() const {
   if (m_Bboxes.empty()) return "";
   std::stringstream json;

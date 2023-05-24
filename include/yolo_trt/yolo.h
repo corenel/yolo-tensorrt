@@ -39,9 +39,9 @@ SOFTWARE.
 #include "cuda_runtime_api.h"
 #include "detect.h"
 #include "opencv2/opencv.hpp"
-//#include "plugin_factory.h"
+// #include "plugin_factory.h"
 #include "trt_utils.h"
-//#include "logging.h"
+// #include "logging.h"
 
 namespace yolo_trt {
 
@@ -49,7 +49,6 @@ namespace yolo_trt {
  * Holds all the file paths required to build a network.
  */
 struct NetworkInfo {
-  std::string networkType;
   std::string configFilePath;
   std::string wtsFilePath;
   std::string labelsFilePath;
@@ -59,18 +58,21 @@ struct NetworkInfo {
   std::string enginePath;
   std::string inputBlobName;
   std::string data_path;
+  yolo_trt::ModelType m_networkType;
 };
 
 /**
  * Holds information about runtime inference params.
  */
 struct InferParams {
-  bool printPerfInfo;
-  bool printPredictionInfo;
+  bool printPerfInfo = false;
+  bool printPredictionInfo = false;
   std::string calibImages;
   std::string calibImagesPath;
-  float probThresh;
-  float nmsThresh;
+  float probThresh = 0.5f;
+  float nmsThresh = 0.5f;
+  uint32_t batchSize = 1;
+  size_t videoMemory = 0;
 };
 
 /**
@@ -93,9 +95,11 @@ struct TensorInfo {
   float* hostBuffer{nullptr};
 };
 
+///
+/// \brief The Yolo class
+///
 class Yolo {
  public:
-  std::string getNetworkType() const { return m_NetworkType; }
   float getNMSThresh() const { return m_NMSThresh; }
   void setNMSThresh(float m_nms_thresh);
   float getProbThresh() const;
@@ -120,11 +124,11 @@ class Yolo {
  protected:
   Yolo(const NetworkInfo& networkInfo, const InferParams& inferParams);
   std::string m_EnginePath;
-  const std::string m_NetworkType;
+  yolo_trt::ModelType m_NetworkType;
   const std::string m_ConfigFilePath;
   const std::string m_WtsFilePath;
   const std::string m_LabelsFilePath;
-  const std::string m_Precision;
+  std::string m_Precision;
   const std::string m_DeviceType;
   const std::string m_CalibImages;
   const std::string m_CalibImagesFilePath;
@@ -132,15 +136,15 @@ class Yolo {
   const std::string m_InputBlobName;
   std::vector<TensorInfo> m_OutputTensors;
   std::vector<std::map<std::string, std::string>> m_configBlocks;
-  uint32_t m_InputH;
-  uint32_t m_InputW;
-  uint32_t m_InputC;
-  uint64_t m_InputSize;
+  uint32_t m_InputH = 0;
+  uint32_t m_InputW = 0;
+  uint32_t m_InputC = 0;
+  uint64_t m_InputSize = 0;
   uint32_t _n_classes = 0;
   float _f_depth_multiple = 0;
   float _f_width_multiple = 0;
-  float m_ProbThresh;
-  float m_NMSThresh;
+  float m_ProbThresh = 0.5f;
+  float m_NMSThresh = 0.5f;
   std::vector<std::string> m_ClassNames;
   // Class ids for coco benchmarking
   const std::vector<int> m_ClassIds{
@@ -149,21 +153,19 @@ class Yolo {
       37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53,
       54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 70, 72, 73,
       74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90};
-  const bool m_PrintPerfInfo;
-  const bool m_PrintPredictions;
+  const bool m_PrintPerfInfo = false;
+  const bool m_PrintPredictions = false;
   // TRT specific members
-  // Logger glogger;
   uint32_t m_BatchSize = 1;
-  nvinfer1::INetworkDefinition* m_Network;
-  nvinfer1::IBuilder* m_Builder;
-  nvinfer1::IHostMemory* m_ModelStream;
-  nvinfer1::ICudaEngine* m_Engine;
-  nvinfer1::IExecutionContext* m_Context;
+  size_t m_videoMemory = 0;
+  nvinfer1::INetworkDefinition* m_Network = nullptr;
+  nvinfer1::IBuilder* m_Builder = nullptr;
+  nvinfer1::IHostMemory* m_ModelStream = nullptr;
+  nvinfer1::ICudaEngine* m_Engine = nullptr;
+  nvinfer1::IExecutionContext* m_Context = nullptr;
   std::vector<void*> m_DeviceBuffers;
-  int m_InputBindingIndex;
-  cudaStream_t m_CudaStream;
-  // PluginFactory* m_PluginFactory;
-  // std::unique_ptr<YoloTinyMaxpoolPaddingFormula> m_TinyMaxpoolPaddingFormula;
+  int m_InputBindingIndex = -1;
+  cudaStream_t m_CudaStream = nullptr;
 
   virtual std::vector<BBoxInfo> decodeTensor(const int imageIdx,
                                              const int imageH, const int imageW,
@@ -171,16 +173,16 @@ class Yolo {
 
   inline void addBBoxProposal(const float bx, const float by, const float bw,
                               const float bh, const uint32_t stride,
-                              const float scalingFactor, const float xOffset,
-                              const float yOffset, const int maxIndex,
-                              const float maxProb, const uint32_t image_w,
-                              const uint32_t image_h,
+                              const float /*scalingFactor*/,
+                              const float /*xOffset*/, const float /*yOffset*/,
+                              const int maxIndex, const float maxProb,
+                              const uint32_t /*image_w*/,
+                              const uint32_t /*image_h*/,
                               std::vector<BBoxInfo>& binfo) {
     BBoxInfo bbi;
     bbi.box = convertBBoxNetRes(bx, by, bw, bh, stride, m_InputW, m_InputH);
-    if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) {
-      return;
-    }
+    if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) return;
+
     //  convertBBoxImgRes(scalingFactor, m_InputW,m_InputH,image_w,image_h,
     //  bbi.box);
     bbi.label = maxIndex;
@@ -189,14 +191,16 @@ class Yolo {
     binfo.push_back(bbi);
   }
 
-  void calcuate_letterbox_message(const int m_InputH, const int m_InputW,
-                                  const int imageH, const int imageW, float& sh,
-                                  float& sw, int& xOffset, int& yOffset) {
-    float dim = std::max(imageW, imageH);
-    int resizeH = ((imageH / dim) * m_InputH);
-    int resizeW = ((imageW / dim) * m_InputW);
-    sh = static_cast<float>(resizeH) / static_cast<float>(imageH);
-    sw = static_cast<float>(resizeW) / static_cast<float>(imageW);
+  void calcuate_letterbox_message(const int imageH, const int imageW, float& sh,
+                                  float& sw, int& xOffset, int& yOffset) const {
+    float r =
+        std::min(static_cast<float>(m_InputH) / static_cast<float>(imageH),
+                 static_cast<float>(m_InputW) / static_cast<float>(imageW));
+    int resizeH = (std::round(imageH * r));
+    int resizeW = (std::round(imageW * r));
+
+    sh = r;
+    sw = r;
     if ((m_InputW - resizeW) % 2) resizeW--;
     if ((m_InputH - resizeH) % 2) resizeH--;
     assert((m_InputW - resizeW) % 2 == 0);
@@ -219,10 +223,10 @@ class Yolo {
     b.y1 = y - bh / 2;
     b.y2 = y + bh / 2;
 
-    b.x1 = clamp(b.x1, 0, netW);
-    b.x2 = clamp(b.x2, 0, netW);
-    b.y1 = clamp(b.y1, 0, netH);
-    b.y2 = clamp(b.y2, 0, netH);
+    b.x1 = clamp(b.x1, 0.f, static_cast<float>(netW));
+    b.x2 = clamp(b.x2, 0.f, static_cast<float>(netW));
+    b.y1 = clamp(b.y1, 0.f, static_cast<float>(netH));
+    b.y2 = clamp(b.y2, 0.f, static_cast<float>(netH));
 
     return b;
   }
@@ -252,10 +256,9 @@ class Yolo {
     BBoxInfo bbi;
     bbi.box = convert_bbox_res(bx, by, bw, bh, stride_h_, stride_w_, m_InputW,
                                m_InputH);
-    if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) {
-      return;
-    }
-    if ("yolov5" == m_NetworkType) {
+    if ((bbi.box.x1 > bbi.box.x2) || (bbi.box.y1 > bbi.box.y2)) return;
+
+    if (yolo_trt::ModelType::YOLOV5 == m_NetworkType) {
       cvt_box(scaleH, scaleW, xoffset_, yoffset, bbi.box);
     } else {
       bbi.box.x1 = ((float)bbi.box.x1 / (float)m_InputW) * (float)image_w;

@@ -35,8 +35,10 @@ int main() {
   yolo_trt::Config config_v4_tiny;
   config_v4_tiny.net_type = yolo_trt::ModelType::YOLOV4_TINY;
   config_v4_tiny.detect_thresh = 0.5;
-  config_v4_tiny.file_model_cfg = "../configs/yolov4-tiny.cfg";
-  config_v4_tiny.file_model_weights = "../configs/yolov4-tiny.weights";
+  config_v4_tiny.file_model_cfg =
+      "../../yolo-trt-8-test/yolov4-tiny-usv-16.cfg";
+  config_v4_tiny.file_model_weights =
+      "../../yolo-trt-8-test/yolov4-tiny-usv-16_best.weights";
   config_v4_tiny.calibration_image_list_file_txt =
       "../configs/calibration_images.txt";
   config_v4_tiny.inference_precision = yolo_trt::Precision::FP32;
@@ -48,10 +50,10 @@ int main() {
   config_v5.file_model_weights = "../configs/yolov5-3.0/yolov5s.weights";
   config_v5.inference_precision = yolo_trt::Precision::FP32;
 
-
   std::unique_ptr<yolo_trt::Detector> detector(new yolo_trt::Detector());
-  detector->init(config_v4);
-  cv::Mat image0 = cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
+  detector->Init(config_v4_tiny);
+  cv::Mat image0 =
+      cv::imread("../../yolo-trt-8-test/929.jpg", cv::IMREAD_UNCHANGED);
   cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
   std::vector<yolo_trt::BatchResult> batch_res;
   yolo_trt::Timer timer;
@@ -65,24 +67,26 @@ int main() {
 
     // detect
     timer.reset();
-    detector->detect(batch_img, batch_res);
+    detector->Detect(batch_img, batch_res);
     timer.out("detect");
 
     // disp
     for (int i = 0; i < batch_img.size(); ++i) {
       for (const auto &r : batch_res[i]) {
-        std::cout << "batch " << i << " id:" << r.id << " prob:" << r.prob
-                  << " rect:" << r.rect << std::endl;
-        cv::rectangle(batch_img[i], r.rect, cv::Scalar(255, 0, 0), 2);
+        std::cout << "batch " << i << " id:" << r.m_id << " prob:" << r.m_prob
+                  << " rect:" << r.m_brect << std::endl;
+        cv::rectangle(batch_img[i], r.m_brect, cv::Scalar(255, 0, 0), 2);
         std::stringstream stream;
-        stream << std::fixed << std::setprecision(2) << "id:" << r.id
-               << "  score:" << r.prob;
+        stream << std::fixed << std::setprecision(2) << "id:" << r.m_id
+               << "  score:" << r.m_prob;
         cv::putText(batch_img[i], stream.str(),
-                    cv::Point(r.rect.x, r.rect.y - 5), 0, 0.5,
+                    cv::Point(r.m_brect.x, r.m_brect.y - 5), 0, 0.5,
                     cv::Scalar(0, 0, 255), 2);
       }
-      cv::imshow("image" + std::to_string(i), batch_img[i]);
+      // cv::namedWindow("image" + std::to_string(i), cv::WINDOW_NORMAL);
+      // cv::imshow("image" + std::to_string(i), batch_img[i]);
+      cv::imwrite("image" + std::to_string(i) + ".png", batch_img[i]);
     }
-    cv::waitKey(10);
+    /* cv::waitKey(10); */
   }
 }

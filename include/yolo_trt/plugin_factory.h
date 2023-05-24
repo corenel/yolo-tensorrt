@@ -36,7 +36,6 @@ SOFTWARE.
 
 #include "NvInfer.h"
 
-
 #define NV_CUDA_CHECK(status)                                         \
   {                                                                   \
     if (status != 0) {                                                \
@@ -125,7 +124,7 @@ void re(const char*& buffer, T& val) {
 
 class YoloLayer : public IPluginV2 {
  public:
-  explicit YoloLayer();
+  explicit YoloLayer() = default;
   YoloLayer(const void* data, size_t length);
   YoloLayer(const uint32_t& numBoxes, const uint32_t& numClasses,
             const uint32_t& grid_h_, const uint32_t& grid_w_);
@@ -144,8 +143,10 @@ class YoloLayer : public IPluginV2 {
   void terminate() noexcept override;
   size_t getWorkspaceSize(int maxBatchSize) const noexcept override;
 
+  int enqueue(int batchSize, const void* const* inputs, void** outputs,
+              void* workspace, cudaStream_t stream) noexcept;
   int enqueue(int batchSize, const void* const* inputs, void* const* outputs,
-              void* workspace, cudaStream_t stream) noexcept override;
+              void* workspace, cudaStream_t stream) noexcept;
 
   size_t getSerializationSize() const noexcept override;
   void serialize(void* buffer) const noexcept override;
@@ -171,12 +172,12 @@ class YoloLayer : public IPluginV2 {
 
  private:
   std::string _s_plugin_namespace;
-  uint32_t m_NumBoxes;
-  uint32_t m_NumClasses;
-  uint32_t m_GridSize;
-  uint64_t m_OutputSize;
-  uint32_t _n_grid_h;
-  uint32_t _n_grid_w;
+  uint32_t m_NumBoxes = 0;
+  uint32_t m_NumClasses = 0;
+  uint32_t m_GridSize = 0;
+  uint64_t m_OutputSize = 0;
+  uint32_t _n_grid_h = 0;
+  uint32_t _n_grid_w = 0;
 };
 
 class YoloLayerPluginCreator : public IPluginCreator {

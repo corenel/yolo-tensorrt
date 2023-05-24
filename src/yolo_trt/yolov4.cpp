@@ -3,10 +3,23 @@
 
 namespace yolo_trt {
 
+///
+/// \brief YoloV4::YoloV4
+/// \param network_info_
+/// \param infer_params_
+///
 YoloV4::YoloV4(const NetworkInfo& network_info_,
                const InferParams& infer_params_)
     : Yolo(network_info_, infer_params_) {}
 
+///
+/// \brief YoloV4::decodeTensor
+/// \param imageIdx
+/// \param imageH
+/// \param imageW
+/// \param tensor
+/// \return
+///
 std::vector<BBoxInfo> YoloV4::decodeTensor(const int imageIdx, const int imageH,
                                            const int imageW,
                                            const TensorInfo& tensor) {

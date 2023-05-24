@@ -31,6 +31,7 @@ SOFTWARE.
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <random>
 
 namespace yolo_trt {
 
@@ -38,22 +39,23 @@ Int8EntropyCalibrator::Int8EntropyCalibrator(
     const uint32_t& batchSize, const std::string& calibImages,
     const std::string& calibImagesPath, const std::string& calibTableFilePath,
     const uint64_t& inputSize, const uint32_t& inputH, const uint32_t& inputW,
-    const std::string& inputBlobName, const std::string& s_net_type_)
+    const std::string& inputBlobName, yolo_trt::ModelType netType)
     : m_BatchSize(batchSize),
       m_InputH(inputH),
       m_InputW(inputW),
       m_InputSize(inputSize),
       m_InputCount(batchSize * inputSize),
+      m_netType(netType),
       m_InputBlobName(inputBlobName),
-      m_CalibTableFilePath(calibTableFilePath),
-      m_ImageIndex(0),
-      _s_net_type(s_net_type_) {
+      m_CalibTableFilePath(calibTableFilePath) {
   if (!fileExists(m_CalibTableFilePath, false)) {
+    std::random_device rng;
+    std::mt19937 urng(rng());
+
     m_ImageList = loadImageList(calibImages, calibImagesPath);
     m_ImageList.resize(static_cast<int>(m_ImageList.size() / m_BatchSize) *
                        m_BatchSize);
-    std::random_shuffle(m_ImageList.begin(), m_ImageList.end(),
-                        [](int i) { return rand() % i; });
+    std::shuffle(m_ImageList.begin(), m_ImageList.end(), urng);
   }
 
   NV_CUDA_CHECK(cudaMalloc(&m_DeviceInput, m_InputCount * sizeof(float)));
@@ -64,20 +66,20 @@ Int8EntropyCalibrator::~Int8EntropyCalibrator() {
 }
 
 bool Int8EntropyCalibrator::getBatch(void* bindings[], const char* names[],
-                                     int nbBindings) noexcept {
+                                     int /*nbBindings*/) noexcept {
   if (m_ImageIndex + m_BatchSize >= m_ImageList.size()) return false;
 
   // Load next batch
   std::vector<DsImage> dsImages(m_BatchSize);
   for (uint32_t j = m_ImageIndex; j < m_ImageIndex + m_BatchSize; ++j) {
     dsImages.at(j - m_ImageIndex) =
-        DsImage(m_ImageList.at(j), _s_net_type, m_InputH, m_InputW);
+        DsImage(m_ImageList.at(j), m_netType, m_InputH, m_InputW);
   }
   m_ImageIndex += m_BatchSize;
 
-  cv::Mat trtInput = blobFromDsImages(dsImages, m_InputH, m_InputW);
+  blobFromDsImages(dsImages, m_blob, m_InputH, m_InputW);
 
-  NV_CUDA_CHECK(cudaMemcpy(m_DeviceInput, trtInput.ptr<float>(0),
+  NV_CUDA_CHECK(cudaMemcpy(m_DeviceInput, m_blob.ptr<float>(0),
                            m_InputCount * sizeof(float),
                            cudaMemcpyHostToDevice));
   assert(!strcmp(names[0], m_InputBlobName.c_str()));
@@ -101,9 +103,7 @@ const void* Int8EntropyCalibrator::readCalibrationCache(
     std::cout << "Using cached calibration table to build the engine"
               << std::endl;
     output = &m_CalibrationCache[0];
-  }
-
-  else {
+  } else {
     std::cout << "New calibration table will be created to build the engine"
               << std::endl;
     output = nullptr;
@@ -119,4 +119,5 @@ void Int8EntropyCalibrator::writeCalibrationCache(const void* cache,
   output.write(reinterpret_cast<const char*>(cache), length);
   output.close();
 }
+
 }  // namespace yolo_trt
