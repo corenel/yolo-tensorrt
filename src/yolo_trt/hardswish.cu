@@ -26,19 +26,14 @@ Hardswish::Hardswish() {
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
   _n_max_thread_pre_block = prop.maxThreadsPerBlock;
-  //	printf("Hardswish():%d\n", _n_max_thread_pre_block);
 }
 
 Hardswish::Hardswish(const void* data, size_t length) {
   const char *d = reinterpret_cast<const char*>(data), *a = d;
   r(d, _n_max_thread_pre_block);
   r(d, _n_output_size);
-  //		printf("r:threads:%d,size:%d\n", _n_max_thread_pre_block,
-  //_n_output_size);
   assert(d == a + length);
 }
-
-Hardswish::~Hardswish() {}
 
 __global__ void kernel_hardswish(const float* input_, float* output_,
                                  int n_data_size_) {
@@ -58,23 +53,26 @@ cudaError_t cuda_hardswish_layer(const void* input_, void* output_,
                                  const int n_output_size_, const int threads_,
                                  cudaStream_t stream_) {
   int n_data_size = n_batch_size_ * n_output_size_;
-  //		printf("cuda_hardswish_layer:%d,size:%d\n", n_batch_size_,
-  // n_output_size_);
-  kernel_hardswish<<<(n_data_size + threads_ - 1) / threads_, threads_>>>(
-      reinterpret_cast<const float*>(input_), reinterpret_cast<float*>(output_),
-      n_data_size);
+  kernel_hardswish<<<(n_data_size + threads_ - 1) / threads_, threads_, 0,
+                     stream_>>>(reinterpret_cast<const float*>(input_),
+                                reinterpret_cast<float*>(output_), n_data_size);
   return cudaGetLastError();
 }
 
 int Hardswish::enqueue(int batchSize, const void* const* inputs,
                        void* const* outputs, void* workspace,
                        cudaStream_t stream) noexcept {
-  //		printf("batch_size:%d,output_size:%d,threads:%d\n", batchSize,
-  //_n_output_size, _n_max_thread_pre_block);
+  // printf("batch_size:%d,output_size:%d,threads:%d\n", batchSize,
+  // _n_output_size, _n_max_thread_pre_block);
   NV_CUDA_CHECK(cuda_hardswish_layer(inputs[0], outputs[0], batchSize,
                                      _n_output_size, _n_max_thread_pre_block,
                                      stream));
   return 0;
+}
+
+int Hardswish::enqueue(int batchSize, const void* const* inputs, void** outputs,
+                       void* workspace, cudaStream_t stream) noexcept {
+  return enqueue(batchSize, inputs, (void* const*)outputs, workspace, stream);
 }
 
 size_t Hardswish::getSerializationSize() const noexcept {
@@ -85,8 +83,6 @@ void Hardswish::serialize(void* buffer) const noexcept {
   char *d = static_cast<char*>(buffer), *a = d;
   w(d, _n_max_thread_pre_block);
   w(d, _n_output_size);
-  //		printf("serialize:%d,%d\n", _n_max_thread_pre_block,
-  //_n_output_size);
   assert(d == a + getSerializationSize());
 }
 
@@ -104,16 +100,14 @@ void Hardswish::configurePlugin(const PluginTensorDesc* in, int nbInput,
                                 const PluginTensorDesc* out,
                                 int nbOutput) noexcept {
   _n_output_size = in->dims.d[0] * in->dims.d[1] * in->dims.d[2];
-  //		printf("configurePlugin:%d,%d,%d\n", in->dims.d[0],
-  //in->dims.d[1], in->dims.d[2]);
+  //	printf("output_size:%d,threads:%d\n", _n_output_size,
+  //_n_max_thread_pre_block);
 }
 IPluginV2* Hardswish::clone() const noexcept {
   Hardswish* p = new Hardswish();
   p->setPluginNamespace(_s_plugin_namespace.c_str());
   p->_n_max_thread_pre_block = _n_max_thread_pre_block;
   p->_n_output_size = _n_output_size;
-  //		printf("clone:%d,%d\n", _n_max_thread_pre_block,
-  //_n_output_size);
   return p;
 }
 

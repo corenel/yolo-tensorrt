@@ -10,10 +10,10 @@
 namespace nvinfer1 {
 class MishPlugin : public IPluginV2 {
  public:
-  explicit MishPlugin();
+  explicit MishPlugin() = default;
   MishPlugin(const void* data, size_t length);
 
-  ~MishPlugin();
+  ~MishPlugin() = default;
 
   int getNbOutputs() const noexcept override { return 1; }
 
@@ -24,14 +24,15 @@ class MishPlugin : public IPluginV2 {
 
   virtual void terminate() noexcept override {}
 
-  virtual size_t getWorkspaceSize(int maxBatchSize) const noexcept override {
+  virtual size_t getWorkspaceSize(
+      int /*maxBatchSize*/) const noexcept override {
     return 0;
   }
 
-  //   virtual int enqueue(int batchSize, const void*const * inputs, void**
-  //   outputs, void* workspace, cudaStream_t stream);
+  int enqueue(int batchSize, const void* const* inputs, void** outputs,
+              void* workspace, cudaStream_t stream) noexcept;
   int enqueue(int batchSize, const void* const* inputs, void* const* outputs,
-              void* workspace, cudaStream_t stream) noexcept override;
+              void* workspace, cudaStream_t stream) noexcept;
   bool supportsFormat(DataType type,
                       PluginFormat format) const noexcept override;
   void configureWithFormat(const Dims* inputDims, int nbInputs,
@@ -44,7 +45,8 @@ class MishPlugin : public IPluginV2 {
   virtual void serialize(void* buffer) const noexcept override;
 
   bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut,
-                                 int nbInputs, int nbOutputs) const noexcept {
+                                 int /*nbInputs*/,
+                                 int /*nbOutputs*/) const noexcept {
     return inOut[pos].format == TensorFormat::kLINEAR &&
            inOut[pos].type == DataType::kFLOAT;
   }
@@ -78,13 +80,13 @@ class MishPlugin : public IPluginV2 {
 
   void detachFromContext() noexcept;
 
-  int input_size_;
+  int input_size_ = 0;
 
  private:
   void forwardGpu(const float* const* inputs, float* output,
                   cudaStream_t stream, int batchSize = 1);
   int thread_count_ = 256;
-  const char* mPluginNamespace;
+  const char* mPluginNamespace = nullptr;
 };
 
 class MishPluginCreator : public IPluginCreator {

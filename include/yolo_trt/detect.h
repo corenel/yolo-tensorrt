@@ -21,24 +21,26 @@ void read(const char*& buffer, T& val) {
 
 class Detect : public IPluginV2 {
  public:
-  Detect();
+  Detect() = default;
   Detect(const void* data, size_t length);
   Detect(const uint32_t n_anchor_, const uint32_t _n_classes_,
 			const uint32_t n_grid_h_, const uint32_t n_grid_w_/*,
 			const uint32_t &n_stride_h_, const uint32_t &n_stride_w_*/);
-  ~Detect();
+  ~Detect() = default;
   int getNbOutputs() const noexcept override { return 1; }
-  Dims getOutputDimensions(int index, const Dims* inputs,
-                           int nbInputDims) noexcept override {
+  Dims getOutputDimensions(int /*index*/, const Dims* inputs,
+                           int /*nbInputDims*/) noexcept override {
     return inputs[0];
   }
   int initialize() noexcept override { return 0; }
   void terminate() noexcept override {}
-  size_t getWorkspaceSize(int maxBatchSize) const noexcept override {
+  size_t getWorkspaceSize(int /*maxBatchSize*/) const noexcept override {
     return 0;
   }
+  int enqueue(int batchSize, const void* const* inputs, void** outputs,
+              void* workspace, cudaStream_t stream) noexcept;
   int enqueue(int batchSize, const void* const* inputs, void* const* outputs,
-              void* workspace, cudaStream_t stream) noexcept override;
+              void* workspace, cudaStream_t stream) noexcept;
 
   bool supportsFormat(DataType type,
                       PluginFormat format) const noexcept override;
@@ -58,38 +60,41 @@ class Detect : public IPluginV2 {
   const char* getPluginNamespace() const noexcept override {
     return _s_plugin_namespace.c_str();
   }
-  DataType getOutputDataType(int index, const nvinfer1::DataType* inputTypes,
-                             int nbInputs) const noexcept {
+  DataType getOutputDataType(int /*index*/,
+                             const nvinfer1::DataType* /*inputTypes*/,
+                             int /*nbInputs*/) const noexcept {
     return DataType::kFLOAT;
   }
-  bool isOutputBroadcastAcrossBatch(int outputIndex,
-                                    const bool* inputIsBroadcasted,
-                                    int nbInputs) const noexcept {
+  bool isOutputBroadcastAcrossBatch(int /*outputIndex*/,
+                                    const bool* /*inputIsBroadcasted*/,
+                                    int /*nbInputs*/) const noexcept {
     return false;
   }
-  bool canBroadcastInputAcrossBatch(int inputIndex) const noexcept {
+  bool canBroadcastInputAcrossBatch(int /*inputIndex*/) const noexcept {
     return false;
   }
-  void attachToContext(cudnnContext* cudnnContext, cublasContext* cublasContext,
-                       IGpuAllocator* gpuAllocator) {}
+  void attachToContext(cudnnContext* /*cudnnContext*/,
+                       cublasContext* /*cublasContext*/,
+                       IGpuAllocator* /*gpuAllocator*/) {}
   void configurePlugin(const PluginTensorDesc* in, int nbInput,
                        const PluginTensorDesc* out, int nbOutput);
   void detachFromContext() {}
   bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut,
-                                 int nbInputs, int nbOutputs) const noexcept {
+                                 int /*nbInputs*/,
+                                 int /*nbOutputs*/) const noexcept {
     return inOut[pos].format == TensorFormat::kLINEAR &&
            inOut[pos].type == DataType::kFLOAT;
   }
   IPluginV2* clone() const noexcept override;
 
  private:
-  uint32_t _n_anchor;
-  uint32_t _n_classes;
-  uint32_t _n_grid_h;
-  uint32_t _n_grid_w;
+  uint32_t _n_anchor = 0;
+  uint32_t _n_classes = 0;
+  uint32_t _n_grid_h = 0;
+  uint32_t _n_grid_w = 0;
   // uint32_t _n_stride_h;
   //	uint32_t _n_stride_w;
-  uint64_t _n_output_size;
+  uint64_t _n_output_size = 0;
   std::string _s_plugin_namespace;
 };  // end detect
 

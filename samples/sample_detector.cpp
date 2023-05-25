@@ -36,8 +36,10 @@ int main() {
   config_v4_tiny.net_type = yolo_trt::ModelType::YOLOV4_TINY;
   config_v4_tiny.detect_thresh = 0.5;
   config_v4_tiny.file_model_cfg =
+      // "../../yolo-trt-8-test/yolov4-tiny.cfg";
       "../../yolo-trt-8-test/yolov4-tiny-usv-16.cfg";
   config_v4_tiny.file_model_weights =
+      // "../../yolo-trt-8-test/yolov4-tiny.weights";
       "../../yolo-trt-8-test/yolov4-tiny-usv-16_best.weights";
   config_v4_tiny.calibration_image_list_file_txt =
       "../configs/calibration_images.txt";
@@ -54,10 +56,11 @@ int main() {
   detector->Init(config_v4_tiny);
   cv::Mat image0 =
       cv::imread("../../yolo-trt-8-test/929.jpg", cv::IMREAD_UNCHANGED);
+  // cv::imread("../configs/dog.jpg", cv::IMREAD_UNCHANGED);
   cv::Mat image1 = cv::imread("../configs/person.jpg", cv::IMREAD_UNCHANGED);
   std::vector<yolo_trt::BatchResult> batch_res;
   yolo_trt::Timer timer;
-  for (;;) {
+  {
     // prepare batch data
     std::vector<cv::Mat> batch_img;
     cv::Mat temp0 = image0.clone();

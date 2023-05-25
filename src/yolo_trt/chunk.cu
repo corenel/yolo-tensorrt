@@ -1,28 +1,28 @@
-#include "yolo_trt/chunk.h"
-
 #include <cuda_runtime.h>
 #include <stdio.h>
 
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#define NV_CUDA_CHECK(status)                                         \
-  {                                                                   \
-    if (status != 0) {                                                \
-      std::cout << "Cuda failure: " << cudaGetErrorString(status)     \
-                << " in file " << __FILE__ << " at line " << __LINE__ \
-                << std::endl;                                         \
-      abort();                                                        \
-    }                                                                 \
+
+#include "yolo_trt/chunk.h"
+
+#define NV_CUDA_CHECK(status)
+
+{
+  if (status != 0) {
+    std::cout << "Cuda failure: " << cudaGetErrorString(status) << " in file "
+              << __FILE__ << " at line " << __LINE__ << std::endl;
+    abort();
   }
+}
 
 namespace nvinfer1 {
-Chunk::Chunk() {}
 Chunk::Chunk(const void* buffer, size_t size) {
   assert(size == sizeof(_n_size_split));
   _n_size_split = *reinterpret_cast<const int*>(buffer);
 }
-Chunk::~Chunk() {}
+
 int Chunk::getNbOutputs() const noexcept { return 2; }
 
 Dims Chunk::getOutputDimensions(int index, const Dims* inputs,
@@ -38,29 +38,25 @@ void Chunk::terminate() noexcept {}
 
 size_t Chunk::getWorkspaceSize(int maxBatchSize) const noexcept { return 0; }
 
-/*int Chunk::enqueue(int batchSize,
-        const void* const* inputs,
-        void** outputs,
-        void* workspace,
-        cudaStream_t stream)noexcept*/
+int Chunk::enqueue(int batchSize, const void* const* inputs, void** outputs,
+                   void* workspace, cudaStream_t stream) noexcept {
+  return enqueue(batchSize, inputs, (void* const*)outputs, workspace, stream);
+}
 
 int Chunk::enqueue(int batchSize, const void* const* inputs,
                    void* const* outputs, void* workspace,
                    cudaStream_t stream) noexcept {
   // batch
   for (int b = 0; b < batchSize; ++b) {
-    NV_CUDA_CHECK(cudaMemcpy((char*)outputs[0] + b * _n_size_split,
-                             (char*)inputs[0] + b * 2 * _n_size_split,
-                             _n_size_split, cudaMemcpyDeviceToDevice));
-    NV_CUDA_CHECK(
-        cudaMemcpy((char*)outputs[1] + b * _n_size_split,
-                   (char*)inputs[0] + b * 2 * _n_size_split + _n_size_split,
-                   _n_size_split, cudaMemcpyDeviceToDevice));
+    NV_CUDA_CHECK(cudaMemcpyAsync((char*)outputs[0] + b * _n_size_split,
+                                  (char*)inputs[0] + b * 2 * _n_size_split,
+                                  _n_size_split, cudaMemcpyDeviceToDevice,
+                                  stream));
+    NV_CUDA_CHECK(cudaMemcpyAsync(
+        (char*)outputs[1] + b * _n_size_split,
+        (char*)inputs[0] + b * 2 * _n_size_split + _n_size_split, _n_size_split,
+        cudaMemcpyDeviceToDevice, stream));
   }
-  //	NV_CUDA_CHECK(cudaMemcpy(outputs[0], inputs[0], _n_size_split,
-  //cudaMemcpyDeviceToDevice)); 	NV_CUDA_CHECK(cudaMemcpy(outputs[1],
-  //(void*)((char*)inputs[0] + _n_size_split), _n_size_split,
-  //cudaMemcpyDeviceToDevice));
   return 0;
 }
 
@@ -120,7 +116,28 @@ bool Chunk::supportsFormat(DataType type, PluginFormat format) const noexcept {
 void Chunk::configureWithFormat(const Dims* inputDims, int nbInputs,
                                 const Dims* outputDims, int nbOutputs,
                                 DataType type, PluginFormat format,
-                                int maxBatchSize) noexcept {}
+                                int maxBatchSize) noexcept {
+  size_t typeSize = sizeof(float);
+  switch (type) {
+    case DataType::kFLOAT:
+      typeSize = sizeof(float);
+      break;
+    case DataType::kHALF:
+      typeSize = sizeof(float) / 2;
+      break;
+    case DataType::kINT8:
+      typeSize = 1;
+      break;
+    case DataType::kINT32:
+      typeSize = 4;
+      break;
+    case DataType::kBOOL:
+      typeSize = 1;
+      break;
+  }
+  _n_size_split =
+      inputDims->d[0] / 2 * inputDims->d[1] * inputDims->d[2] * typeSize;
+}
 
 // Clone the plugin
 IPluginV2* Chunk::clone() const noexcept {

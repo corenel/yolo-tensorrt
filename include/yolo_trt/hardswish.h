@@ -23,15 +23,15 @@ class Hardswish : public IPluginV2 {
  public:
   Hardswish();
   Hardswish(const void* data, size_t length);
-  ~Hardswish();
+  ~Hardswish() = default;
   int getNbOutputs() const noexcept override { return 1; }
-  Dims getOutputDimensions(int index, const Dims* inputs,
-                           int nbInputDims) noexcept override {
+  Dims getOutputDimensions(int /*index*/, const Dims* inputs,
+                           int /*nbInputDims*/) noexcept override {
     return inputs[0];
   }
   int initialize() noexcept override { return 0; }
   void terminate() noexcept override {}
-  size_t getWorkspaceSize(int maxBatchSize) const noexcept override {
+  size_t getWorkspaceSize(int /*maxBatchSize*/) const noexcept override {
     return 0;
   }
 
@@ -42,8 +42,10 @@ class Hardswish : public IPluginV2 {
                            PluginFormat format,
                            int maxBatchSize) noexcept override;
 
+  int enqueue(int batchSize, const void* const* inputs, void** outputs,
+              void* workspace, cudaStream_t stream) noexcept;
   int enqueue(int batchSize, const void* const* inputs, void* const* outputs,
-              void* workspace, cudaStream_t stream) noexcept override;
+              void* workspace, cudaStream_t stream) noexcept;
 
   size_t getSerializationSize() const noexcept override;
   void serialize(void* buffer) const noexcept override;
@@ -58,33 +60,36 @@ class Hardswish : public IPluginV2 {
   const char* getPluginNamespace() const noexcept override {
     return _s_plugin_namespace.c_str();
   }
-  DataType getOutputDataType(int index, const nvinfer1::DataType* inputTypes,
-                             int nbInputs) const noexcept {
+  DataType getOutputDataType(int /*index*/,
+                             const nvinfer1::DataType* /*inputTypes*/,
+                             int /*nbInputs*/) const noexcept {
     return DataType::kFLOAT;
   }
-  bool isOutputBroadcastAcrossBatch(int outputIndex,
-                                    const bool* inputIsBroadcasted,
-                                    int nbInputs) const noexcept {
+  bool isOutputBroadcastAcrossBatch(int /*outputIndex*/,
+                                    const bool* /*inputIsBroadcasted*/,
+                                    int /*nbInputs*/) const noexcept {
     return false;
   }
-  bool canBroadcastInputAcrossBatch(int inputIndex) const noexcept {
+  bool canBroadcastInputAcrossBatch(int /*inputIndex*/) const noexcept {
     return false;
   }
-  void attachToContext(cudnnContext* cudnnContext, cublasContext* cublasContext,
-                       IGpuAllocator* gpuAllocator) noexcept {}
+  void attachToContext(cudnnContext* /*cudnnContext*/,
+                       cublasContext* /*cublasContext*/,
+                       IGpuAllocator* /*gpuAllocator*/) noexcept {}
   void configurePlugin(const PluginTensorDesc* in, int nbInput,
                        const PluginTensorDesc* out, int nbOutput) noexcept;
   void detachFromContext() noexcept {}
   bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut,
-                                 int nbInputs, int nbOutputs) const noexcept {
+                                 int /*nbInputs*/,
+                                 int /*nbOutputs*/) const noexcept {
     return inOut[pos].format == TensorFormat::kLINEAR &&
            inOut[pos].type == DataType::kFLOAT;
   }
   IPluginV2* clone() const noexcept override;
 
  private:
-  uint32_t _n_max_thread_pre_block;
-  uint32_t _n_output_size;
+  uint32_t _n_max_thread_pre_block = 0;
+  uint32_t _n_output_size = 0;
   std::string _s_plugin_namespace;
 };  // end detect
 

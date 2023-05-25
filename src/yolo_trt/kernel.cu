@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 inline __device__ float sigmoidGPU(const float& x) {
   return 1.0f / (1.0f + __expf(-x));
 }

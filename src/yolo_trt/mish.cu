@@ -7,10 +7,6 @@
 #include "yolo_trt/mish.h"
 
 namespace nvinfer1 {
-MishPlugin::MishPlugin() {}
-
-MishPlugin::~MishPlugin() {}
-
 // create the plugin at runtime from a byte stream
 MishPlugin::MishPlugin(const void* data, size_t length) {
   assert(length == sizeof(input_size_));
@@ -120,12 +116,12 @@ __global__ void mish_kernel(const float* input, float* output, int num_elem) {
 
   // float t = exp(input[idx]);
   // if (input[idx] > 20.0) {
-  //     t *= t;
-  //     output[idx] = (t - 1.0) / (t + 1.0);
-  // } else {
-  //     float tt = t * t;
-  //     output[idx] = (tt + 2.0 * t) / (tt + 2.0 * t + 2.0);
-  // }
+  //    t *= t;
+  //    output[idx] = (t - 1.0) / (t + 1.0);
+  //} else {
+  //    float tt = t * t;
+  //    output[idx] = (tt + 2.0 * t) / (tt + 2.0 * t + 2.0);
+  //}
   // output[idx] *= input[idx];
   output[idx] = input[idx] * tanh_activate_kernel(softplus_kernel(input[idx]));
 }
@@ -134,19 +130,22 @@ void MishPlugin::forwardGpu(const float* const* inputs, float* output,
                             cudaStream_t stream, int batchSize) {
   int block_size = thread_count_;
   int grid_size = (input_size_ * batchSize + block_size - 1) / block_size;
-  mish_kernel<<<grid_size, block_size>>>(inputs[0], output,
-                                         input_size_ * batchSize);
+  mish_kernel<<<grid_size, block_size, 0, stream>>>(inputs[0], output,
+                                                    input_size_ * batchSize);
 }
 
 int MishPlugin::enqueue(int batchSize, const void* const* inputs,
                         void* const* outputs, void* workspace,
                         cudaStream_t stream) noexcept {
-  // assert(batchSize == 1);
-  // GPU
-  // CUDA_CHECK(cudaStreamSynchronize(stream));
   forwardGpu((const float* const*)inputs, (float*)outputs[0], stream,
              batchSize);
   return 0;
+}
+
+int MishPlugin::enqueue(int batchSize, const void* const* inputs,
+                        void** outputs, void* workspace,
+                        cudaStream_t stream) noexcept {
+  return enqueue(batchSize, inputs, (void* const*)outputs, workspace, stream);
 }
 
 PluginFieldCollection MishPluginCreator::mFC{};

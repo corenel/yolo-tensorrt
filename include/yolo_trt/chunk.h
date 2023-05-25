@@ -1,16 +1,16 @@
 #ifndef CHUNK_H_
 #define CHUNK_H_
 
-//#include "NvInfer.h"
-//#include "NvInferPlugin.h"
-//#include "NvInferRuntimeCommon.h"
-//#include <cuda_runtime.h>
-//#include <iostream>
-//#include <memory>
-//#include <sstream>
-//#include <string>
-//#include <cassert>
-//#include <vector>
+// #include "NvInfer.h"
+// #include "NvInferPlugin.h"
+// #include "NvInferRuntimeCommon.h"
+// #include <cuda_runtime.h>
+// #include <iostream>
+// #include <memory>
+// #include <sstream>
+// #include <string>
+// #include <cassert>
+// #include <vector>
 
 #include <string>
 #include <vector>
@@ -20,20 +20,20 @@
 namespace nvinfer1 {
 class Chunk : public IPluginV2 {
  public:
-  Chunk();
+  Chunk() = default;
   Chunk(const void* buffer, size_t length);
-  ~Chunk();
+  ~Chunk() = default;
   int getNbOutputs() const noexcept override;
   Dims getOutputDimensions(int index, const Dims* inputs,
                            int nbInputDims) noexcept override;
   int initialize() noexcept override;
   void terminate() noexcept override;
   size_t getWorkspaceSize(int maxBatchSize) const noexcept override;
-  //	int enqueue(int batchSize, const void* const* inputs, void** outputs,
-  // void* workspace, cudaStream_t stream)noexcept override;
 
   int enqueue(int batchSize, const void* const* inputs, void* const* outputs,
-              void* workspace, cudaStream_t stream) noexcept override;
+              void* workspace, cudaStream_t stream) noexcept;
+  int enqueue(int batchSize, const void* const* inputs, void** outputs,
+              void* workspace, cudaStream_t stream) noexcept;
 
   size_t getSerializationSize() const noexcept override;
   void serialize(void* buffer) const noexcept override;
@@ -54,7 +54,7 @@ class Chunk : public IPluginV2 {
                        const PluginTensorDesc* out, int nbOutput);
   void detachFromContext();
   bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut,
-                                 int nbInputs, int nbOutputs) const {
+                                 int /*nbInputs*/, int /*nbOutputs*/) const {
     return inOut[pos].format == TensorFormat::kLINEAR &&
            inOut[pos].type == DataType::kFLOAT;
   }
@@ -68,7 +68,7 @@ class Chunk : public IPluginV2 {
 
  private:
   std::string _s_plugin_namespace;
-  int _n_size_split;
+  int _n_size_split = 0;
 };
 
 class ChunkPluginCreator : public IPluginCreator {

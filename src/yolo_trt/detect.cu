@@ -22,8 +22,6 @@
   }
 
 namespace nvinfer1 {
-Detect::Detect() {}
-
 Detect::Detect(const void* data, size_t length) {
   const char *d = reinterpret_cast<const char*>(data), *a = d;
   read(d, _n_anchor);
@@ -46,7 +44,6 @@ Detect::Detect(const uint32_t n_anchor_, const uint32_t n_classes_,
 	{
   _n_output_size = (5 + _n_classes) * _n_anchor * _n_grid_h * _n_grid_w;
 }
-Detect::~Detect() {}
 
 inline __device__ float sigmoidGPU(const float& x) {
   return 1.0f / (1.0f + __expf(-x));
@@ -126,6 +123,11 @@ int Detect::enqueue(int batchSize, const void* const* inputs,
                                   _n_grid_w, _n_classes, _n_anchor,
                                   _n_output_size, stream));
   return 0;
+}
+
+int Detect::enqueue(int batchSize, const void* const* inputs, void** outputs,
+                    void* workspace, cudaStream_t stream) noexcept {
+  return enqueue(batchSize, inputs, (void* const*)outputs, workspace, stream);
 }
 
 bool Detect::supportsFormat(DataType type, PluginFormat format) const noexcept {
